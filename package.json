@@ -1,0 +1,37 @@
+{
+  "name": "art-tools-cli",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/a11y": "^1.0.0-alpha.1",
+    "@nuxt/content": "^3.11.0",
+    "@nuxt/eslint": "^1.13.0",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/scripts": "^0.13.2",
+    "@nuxt/ui": "^4.4.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@unhead/vue": "^2.1.2",
+    "better-sqlite3": "^12.6.2",
+    "eslint": "^9.39.2",
+    "nuxt": "^4.3.0",
+    "nuxt-swiper": "^2.0.1",
+    "nuxt-viewport": "^2.3.1",
+    "socket.io-client": "^4.8.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vue": "^3.5.27",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.7.1",
+    "@types/node": "^25.2.1",
+    "sass": "^1.97.3"
+  }
+}
