@@ -2,7 +2,6 @@
   <div class="import-manager">
     <h1>Управління імпортом</h1>
 
-    <!-- Повідомлення -->
     <div v-if="error" class="alert error" @click="error = null">
       {{ error }}
     </div>
@@ -10,7 +9,6 @@
       {{ success }}
     </div>
 
-    <!-- Табки -->
     <div class="tabs">
       <button
         :class="{ active: activeTab === 'sources' }"
@@ -32,10 +30,7 @@
       </button>
     </div>
 
-    <!-- Контент табів -->
     <div class="tab-content">
-
-      <!-- Список джерел -->
       <div v-if="activeTab === 'sources'" class="sources-section">
         <div class="actions-bar">
           <button class="btn primary" :disabled="loading" @click="runAllImports">
@@ -131,20 +126,18 @@
               </button>
             </div>
 
-            <!-- Прогрес імпорту -->
             <div v-if="importProgress[source.id]" class="import-progress">
               <div class="progress-bar">
                 <div
                   class="progress-fill"
-                  :style="{ width: importProgress[source.id].percent + '%' }"
+                  :style="{ width: (importProgress[source.id]?.percent ?? 0) + '%' }"
                 />
               </div>
-              <div class="progress-text">{{ importProgress[source.id].status }}</div>
+              <div class="progress-text">{{ importProgress[source.id]?.status }}</div>
             </div>
           </div>
         </div>
 
-        <!-- Порожній стан -->
         <div v-if="sources.length === 0" class="empty-state">
           <p>Немає джерел імпорту</p>
           <button class="btn primary" @click="activeTab = 'add'">
@@ -153,10 +146,8 @@
         </div>
       </div>
 
-      <!-- Додати джерело -->
       <div v-if="activeTab === 'add'" class="add-section">
         <div class="two-columns">
-          <!-- Імпорт по URL -->
           <div class="column">
             <h3>🔗 Імпорт по URL</h3>
             <form class="form" @submit.prevent="importFromUrl">
@@ -193,7 +184,6 @@
             </form>
           </div>
 
-          <!-- Імпорт файлу -->
           <div class="column">
             <h3>📁 Імпорт файлу</h3>
             <form class="form" @submit.prevent="importFromFile">
@@ -235,7 +225,6 @@
         </div>
       </div>
 
-      <!-- Маппінг категорій -->
       <div v-if="activeTab === 'mappings'" class="mappings-section">
         <div class="mappings-header">
           <div class="form-group inline">
@@ -258,7 +247,6 @@
         </div>
 
         <div v-if="selectedSupplier" class="two-columns">
-          <!-- Незамаплені категорії -->
           <div class="column">
             <h3>Незамаплені категорії ({{ unmappedCategories.length }})</h3>
             <div class="category-list">
@@ -276,7 +264,6 @@
             </div>
           </div>
 
-          <!-- Цільові категорії -->
           <div class="column">
             <h3>Наші категорії</h3>
             <input
@@ -300,7 +287,6 @@
           </div>
         </div>
 
-        <!-- Кнопка маппінгу -->
         <div v-if="selectedMapping && selectedTarget" class="map-action">
           <p>
             <strong>{{ selectedMapping.externalName }}</strong>
@@ -315,7 +301,6 @@
           </button>
         </div>
 
-        <!-- Всі маппінги -->
         <div v-if="selectedSupplier && allMappings.length > 0" class="all-mappings">
           <h3>Всі маппінги ({{ allMappings.length }})</h3>
           <div class="mappings-table">
@@ -350,7 +335,6 @@
       </div>
     </div>
 
-    <!-- Модалка редагування -->
     <div v-if="editModal" class="modal-overlay" @click.self="editModal = null">
       <div class="modal">
         <h3>Редагувати джерело</h3>
@@ -384,7 +368,6 @@
       </div>
     </div>
 
-    <!-- Модалка підтвердження видалення -->
     <div v-if="deleteConfirmModal" class="modal-overlay" @click.self="deleteConfirmModal = null">
       <div class="modal danger-modal">
         <h3>⚠️ {{ deleteConfirmModal.title }}</h3>
@@ -409,47 +392,103 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-
+<script setup lang="ts">
 definePageMeta({
   layout: 'admin'
 })
 
+interface ImportStats {
+  products?: {
+    created?: number
+    updated?: number
+    total?: number
+  }
+}
+
+interface Source {
+  id: string
+  supplierName: string
+  supplierPrefix: string
+  sourceType: 'url' | 'file'
+  sourceUrl?: string
+  sourceFilename?: string
+  isActive: boolean
+  lastImportAt?: string
+  lastImportStats?: ImportStats
+  productCount?: number
+}
+
+interface MappingStats {
+  total: number
+  mapped: number
+  unmapped: number
+  percent: string
+  productCount: number
+}
+
+interface UnmappedCategory {
+  id: string
+  externalId: string
+  externalName: string
+  parentName?: string
+}
+
+interface TargetCategory {
+  id: string
+  name: string
+  parentName?: string
+}
+
+interface Mapping {
+  id: string
+  external_category_id: string
+  external_category_name: string
+  internal_sub_category_id?: string
+  internalCategoryName?: string
+}
+
+interface ImportProgress {
+  percent: number
+  status: string
+}
+
+interface DeleteConfirm {
+  title: string
+  message: string
+  stats: { products: number } | null
+  action: 'reimport' | 'deleteProducts' | 'deleteSource'
+  source: Source
+  deleteProducts?: boolean
+}
+
 const config = useRuntimeConfig()
 const API_URL = config.public.apiBase || 'http://localhost:8000/api'
 
-// Стани
-const activeTab = ref('sources')
+const activeTab = ref<'sources' | 'add' | 'mappings'>('sources')
 const loading = ref(false)
-const error = ref(null)
-const success = ref(null)
+const error = ref<string | null>(null)
+const success = ref<string | null>(null)
 
-// Дані
-const sources = ref([])
-const allMappings = ref([])
-const unmappedCategories = ref([])
-const targetCategories = ref([])
-const mappingStats = ref(null)
-const importProgress = ref({})
+const sources = ref<Source[]>([])
+const allMappings = ref<Mapping[]>([])
+const unmappedCategories = ref<UnmappedCategory[]>([])
+const targetCategories = ref<TargetCategory[]>([])
+const mappingStats = ref<MappingStats | null>(null)
+const importProgress = ref<Record<string, ImportProgress>>({})
 
-// Вибране
 const selectedSupplier = ref('')
-const selectedMapping = ref(null)
-const selectedTarget = ref(null)
-const selectedFile = ref(null)
-const editFile = ref(null)
+const selectedMapping = ref<UnmappedCategory | null>(null)
+const selectedTarget = ref<TargetCategory | null>(null)
+const selectedFile = ref<File | null>(null)
+const editFile = ref<File | null>(null)
 
-// Форми
 const urlForm = ref({ supplierPrefix: '', supplierName: '', xmlUrl: '' })
 const fileForm = ref({ supplierPrefix: '', supplierName: '' })
-const editModal = ref(null)
-const deleteConfirmModal = ref(null)
+const editModal = ref<Source | null>(null)
+const deleteConfirmModal = ref<DeleteConfirm | null>(null)
 
-// Пошук
 const targetSearch = ref('')
 
-// Computed
 const filteredTargets = computed(() => {
   if (!targetSearch.value) return targetCategories.value
   const search = targetSearch.value.toLowerCase()
@@ -459,14 +498,23 @@ const filteredTargets = computed(() => {
   )
 })
 
-// === API функції ===
+function clearProgress(sourceId: string) {
+  const newProgress = { ...importProgress.value }
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  delete newProgress[sourceId]
+  importProgress.value = newProgress
+}
+
+function setProgress(sourceId: string, progress: ImportProgress) {
+  importProgress.value = { ...importProgress.value, [sourceId]: progress }
+}
 
 async function fetchSources() {
   try {
-    const data = await $fetch(`${API_URL}admin/import/sources`)
+    const data = await $fetch<{ sources: Source[] }>(`${API_URL}admin/import/sources`)
     sources.value = data.sources || []
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
@@ -479,17 +527,17 @@ async function fetchMappings() {
   }
 
   try {
-    const mappingsData = await $fetch(`${API_URL}admin/import/mappings/${selectedSupplier.value}`)
+    const mappingsData = await $fetch<{ mappings: Mapping[] }>(`${API_URL}admin/import/mappings/${selectedSupplier.value}`)
     allMappings.value = mappingsData.mappings || []
 
-    const unmappedData = await $fetch(`${API_URL}admin/import/unmapped/${selectedSupplier.value}`)
+    const unmappedData = await $fetch<{ unmapped: UnmappedCategory[]; targets: TargetCategory[] }>(`${API_URL}admin/import/unmapped/${selectedSupplier.value}`)
     unmappedCategories.value = unmappedData.unmapped || []
     targetCategories.value = unmappedData.targets || []
 
-    const statsData = await $fetch(`${API_URL}admin/import/stats/${selectedSupplier.value}`)
+    const statsData = await $fetch<{ stats: MappingStats }>(`${API_URL}admin/import/stats/${selectedSupplier.value}`)
     mappingStats.value = statsData.stats
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
@@ -498,7 +546,7 @@ async function importFromUrl() {
 
   loading.value = true
   try {
-    const data = await $fetch(`${API_URL}admin/import/url`, {
+    const data = await $fetch<{ result?: ImportStats }>(`${API_URL}admin/import/url`, {
       method: 'POST',
       body: {
         xmlUrl: urlForm.value.xmlUrl,
@@ -511,8 +559,8 @@ async function importFromUrl() {
     urlForm.value = { supplierPrefix: '', supplierName: '', xmlUrl: '' }
     await fetchSources()
     activeTab.value = 'sources'
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
@@ -528,7 +576,7 @@ async function importFromFile() {
     formData.append('supplierPrefix', fileForm.value.supplierPrefix.toUpperCase())
     formData.append('supplierName', fileForm.value.supplierName || fileForm.value.supplierPrefix)
 
-    const data = await $fetch(`${API_URL}admin/import/file`, {
+    const data = await $fetch<{ result?: ImportStats }>(`${API_URL}admin/import/file`, {
       method: 'POST',
       body: formData
     })
@@ -538,35 +586,33 @@ async function importFromFile() {
     selectedFile.value = null
     await fetchSources()
     activeTab.value = 'sources'
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-async function runImport(source) {
+async function runImport(source: Source) {
   loading.value = true
-  importProgress.value[source.id] = { percent: 0, status: 'Запускаю...' }
+  setProgress(source.id, { percent: 0, status: 'Запускаю...' })
 
   try {
-    importProgress.value[source.id] = { percent: 30, status: 'Завантажую XML...' }
+    setProgress(source.id, { percent: 30, status: 'Завантажую XML...' })
 
-    const data = await $fetch(`${API_URL}admin/import/sources/${source.id}/run`, {
+    const data = await $fetch<{ result?: ImportStats }>(`${API_URL}admin/import/sources/${source.id}/run`, {
       method: 'POST'
     })
 
-    importProgress.value[source.id] = { percent: 100, status: 'Готово!' }
+    setProgress(source.id, { percent: 100, status: 'Готово!' })
     success.value = `${source.supplierName}: ${data.result?.products?.created || 0} нових, ${data.result?.products?.updated || 0} оновлено`
 
-    setTimeout(() => {
-      delete importProgress.value[source.id]
-    }, 2000)
+    setTimeout(() => clearProgress(source.id), 2000)
 
     await fetchSources()
-  } catch (err) {
-    error.value = err.data?.error || err.message
-    delete importProgress.value[source.id]
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
+    clearProgress(source.id)
   } finally {
     loading.value = false
   }
@@ -575,21 +621,21 @@ async function runImport(source) {
 async function runAllImports() {
   loading.value = true
   try {
-    const data = await $fetch(`${API_URL}admin/import/run-all`, {
+    const data = await $fetch<{ totalSources: number; results: { success: boolean }[] }>(`${API_URL}admin/import/run-all`, {
       method: 'POST'
     })
 
     const successCount = data.results.filter(r => r.success).length
     success.value = `Запущено ${data.totalSources} джерел, успішно: ${successCount}`
     await fetchSources()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-async function reimportSource(source) {
+function reimportSource(source: Source) {
   deleteConfirmModal.value = {
     title: 'Переімпорт',
     message: `Видалити всі товари "${source.supplierName}" і завантажити заново?`,
@@ -599,7 +645,7 @@ async function reimportSource(source) {
   }
 }
 
-async function deleteSourceProducts(source) {
+function deleteSourceProducts(source: Source) {
   deleteConfirmModal.value = {
     title: 'Очистити товари',
     message: `Видалити всі товари постачальника "${source.supplierName}"? Джерело залишиться.`,
@@ -609,7 +655,7 @@ async function deleteSourceProducts(source) {
   }
 }
 
-async function deleteSource(source) {
+function deleteSource(source: Source) {
   deleteConfirmModal.value = {
     title: 'Видалити джерело',
     message: `Видалити джерело "${source.supplierName}"? Товари залишаться в базі.`,
@@ -628,21 +674,19 @@ async function confirmDelete() {
 
   try {
     if (action === 'reimport') {
-      importProgress.value[source.id] = { percent: 0, status: 'Видаляю старі товари...' }
+      setProgress(source.id, { percent: 0, status: 'Видаляю старі товари...' })
 
-      const data = await $fetch(`${API_URL}admin/import/sources/${source.id}/reimport`, {
+      const data = await $fetch<{ deleted?: { products?: number }; imported?: ImportStats }>(`${API_URL}admin/import/sources/${source.id}/reimport`, {
         method: 'POST'
       })
 
-      importProgress.value[source.id] = { percent: 100, status: 'Готово!' }
+      setProgress(source.id, { percent: 100, status: 'Готово!' })
       success.value = `Переімпорт завершено: видалено ${data.deleted?.products || 0}, імпортовано ${data.imported?.products?.total || 0} товарів`
 
-      setTimeout(() => {
-        delete importProgress.value[source.id]
-      }, 2000)
+      setTimeout(() => clearProgress(source.id), 2000)
 
     } else if (action === 'deleteProducts') {
-      const data = await $fetch(`${API_URL}admin/import/sources/${source.id}/products`, {
+      const data = await $fetch<{ deleted?: { products?: number } }>(`${API_URL}admin/import/sources/${source.id}/products`, {
         method: 'DELETE'
       })
       success.value = `Видалено ${data.deleted?.products || 0} товарів`
@@ -656,26 +700,26 @@ async function confirmDelete() {
 
     deleteConfirmModal.value = null
     await fetchSources()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-async function toggleSourceActive(source) {
+async function toggleSourceActive(source: Source) {
   try {
     await $fetch(`${API_URL}admin/import/sources/${source.id}`, {
       method: 'PUT',
       body: { isActive: !source.isActive }
     })
     await fetchSources()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
-function editSource(source) {
+function editSource(source: Source) {
   editModal.value = { ...source }
   editFile.value = null
 }
@@ -705,8 +749,8 @@ async function saveSourceEdit() {
     success.value = 'Джерело оновлено'
     editModal.value = null
     await fetchSources()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
@@ -729,14 +773,14 @@ async function saveMapping() {
     success.value = 'Маппінг збережено'
     clearSelection()
     await fetchMappings()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-async function deleteMapping(id) {
+async function deleteMapping(id: string) {
   if (!confirm('Видалити маппінг?')) return
 
   try {
@@ -745,26 +789,26 @@ async function deleteMapping(id) {
     })
     success.value = 'Маппінг видалено'
     await fetchMappings()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
-// === Допоміжні функції ===
-
-function handleFileSelect(event) {
-  selectedFile.value = event.target.files[0] || null
+function handleFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  selectedFile.value = input.files?.[0] || null
 }
 
-function handleEditFileSelect(event) {
-  editFile.value = event.target.files[0] || null
+function handleEditFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  editFile.value = input.files?.[0] || null
 }
 
-function selectMapping(cat) {
+function selectMapping(cat: UnmappedCategory) {
   selectedMapping.value = cat
 }
 
-function selectTarget(cat) {
+function selectTarget(cat: TargetCategory) {
   selectedTarget.value = cat
 }
 
@@ -773,23 +817,21 @@ function clearSelection() {
   selectedTarget.value = null
 }
 
-function truncateUrl(url) {
+function truncateUrl(url?: string) {
   if (!url) return ''
   return url.length > 50 ? url.substring(0, 50) + '...' : url
 }
 
-function formatDate(date) {
+function formatDate(date?: string) {
   if (!date) return ''
   return new Date(date).toLocaleString('uk-UA')
 }
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
-
-// === Watchers ===
 
 watch(activeTab, (tab) => {
   if (tab === 'sources') fetchSources()
@@ -801,8 +843,6 @@ watch([error, success], () => {
     success.value = null
   }, 5000)
 })
-
-// === Lifecycle ===
 
 onMounted(() => {
   fetchSources()
@@ -821,7 +861,6 @@ h1 {
   color: #333;
 }
 
-/* Алерти */
 .alert {
   padding: 12px 20px;
   border-radius: 6px;
@@ -841,7 +880,6 @@ h1 {
   border: 1px solid #a5d6a7;
 }
 
-/* Табки */
 .tabs {
   display: flex;
   gap: 5px;
@@ -869,14 +907,12 @@ h1 {
   color: white;
 }
 
-/* Actions bar */
 .actions-bar {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
 }
 
-/* Sources grid */
 .sources-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -887,7 +923,7 @@ h1 {
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 2px solid transparent;
 }
 
@@ -989,7 +1025,6 @@ h1 {
   border-top: 1px solid #eee;
 }
 
-/* Progress */
 .import-progress {
   margin-top: 15px;
   padding-top: 15px;
@@ -1015,7 +1050,6 @@ h1 {
   margin-top: 4px;
 }
 
-/* Two columns */
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1026,7 +1060,7 @@ h1 {
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .column h3 {
@@ -1036,7 +1070,6 @@ h1 {
   padding-bottom: 10px;
 }
 
-/* Forms */
 .form {
   display: flex;
   flex-direction: column;
@@ -1086,7 +1119,6 @@ h1 {
   font-size: 14px;
 }
 
-/* Buttons */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -1167,7 +1199,6 @@ h1 {
   color: #c62828;
 }
 
-/* Category list */
 .category-list {
   max-height: 400px;
   overflow-y: auto;
@@ -1212,7 +1243,6 @@ h1 {
   margin-top: 4px;
 }
 
-/* Search */
 .search-input {
   width: 100%;
   padding: 10px 12px;
@@ -1222,21 +1252,19 @@ h1 {
   font-size: 14px;
 }
 
-/* Map action */
 .map-action {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
   margin-top: 20px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 15px;
 }
 
-/* Mappings header */
 .mappings-header {
   display: flex;
   justify-content: space-between;
@@ -1279,7 +1307,6 @@ h1 {
   color: #7b1fa2;
 }
 
-/* Mappings table */
 .all-mappings {
   margin-top: 30px;
 }
@@ -1318,14 +1345,13 @@ h1 {
   font-style: italic;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1369,14 +1395,12 @@ h1 {
   color: #c62828;
 }
 
-/* Empty state */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: #666;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .two-columns {
     grid-template-columns: 1fr;

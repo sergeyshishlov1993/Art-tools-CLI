@@ -2,25 +2,36 @@
 import AdminHeader from '~/models/admin/components/AdminHeader.vue'
 import { useAdminStore } from '~/models/admin/AdminStore'
 import { useAdminSocket } from '~/models/admin/composables/useAdminSocket'
+import { useAuthStore } from '~/models/auth/AuthStore'
 
 const route = useRoute()
 const adminStore = useAdminStore()
+const authStore = useAuthStore()
 const { connect, disconnect, isConnected } = useAdminSocket()
 
 if (import.meta.client) {
-  adminStore.requestNotificationPermission()
-  adminStore.fetchCounts()
-  connect()
+  authStore.init()
+
+  if (authStore.isAuthenticated) {
+    adminStore.requestNotificationPermission()
+    adminStore.fetchCounts()
+    connect()
+  }
 }
 
 onUnmounted(() => {
   disconnect()
 })
+
+function handleLogout() {
+  disconnect()
+  authStore.logout()
+}
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
-    <AdminHeader />
+    <AdminHeader @logout="handleLogout" />
 
     <main class="flex-1">
       <Transition name="page" mode="out-in">

@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
-import { useAdminProductAPI, type AdminProduct, type AdminProductFilters, type CreateProductData } from './AdminProductAPI'
+import {
+  useAdminProductAPI,
+  type AdminProduct,
+  type AdminProductFilters,
+  type CreateProductData,
+  type UpdateProductData
+} from './AdminProductAPI'
 
 export const useAdminProductStore = defineStore('adminProduct', () => {
   const api = useAdminProductAPI()
@@ -74,7 +80,7 @@ export const useAdminProductStore = defineStore('adminProduct', () => {
     }
   }
 
-  async function updateProduct(id: string, data: Partial<AdminProduct>): Promise<boolean> {
+  async function updateProduct(id: string, data: UpdateProductData): Promise<boolean> {
     saving.value = true
     error.value = null
 
@@ -228,6 +234,13 @@ export const useAdminProductStore = defineStore('adminProduct', () => {
     currentProduct.value = null
   }
 
+  function updateProductInList(id: string, updates: Partial<AdminProduct>) {
+    const index = products.value.findIndex(p => p.product_id === id)
+    if (index !== -1) {
+      products.value[index] = { ...products.value[index], ...updates } as AdminProduct
+    }
+  }
+
   async function setSale(id: string, discount: number, salePrice: string): Promise<boolean> {
     saving.value = true
     error.value = null
@@ -236,15 +249,11 @@ export const useAdminProductStore = defineStore('adminProduct', () => {
       await api.updateDiscount(id, discount, salePrice)
       await api.updateProduct(id, { sale: 'true' })
 
-      const index = products.value.findIndex(p => p.product_id === id)
-      if (index !== -1) {
-        products.value[index] = {
-          ...products.value[index],
-          sale: 'true',
-          discount,
-          sale_price: salePrice
-        }
-      }
+      updateProductInList(id, {
+        sale: 'true',
+        discount,
+        sale_price: salePrice
+      })
 
       return true
     } catch (e) {
@@ -266,15 +275,11 @@ export const useAdminProductStore = defineStore('adminProduct', () => {
         sale_price: '0'
       })
 
-      const index = products.value.findIndex(p => p.product_id === id)
-      if (index !== -1) {
-        products.value[index] = {
-          ...products.value[index],
-          sale: 'false',
-          discount: 0,
-          sale_price: '0'
-        }
-      }
+      updateProductInList(id, {
+        sale: 'false',
+        discount: 0,
+        sale_price: '0'
+      })
 
       return true
     } catch (e) {
@@ -312,3 +317,4 @@ export const useAdminProductStore = defineStore('adminProduct', () => {
     removeSale,
   }
 })
+

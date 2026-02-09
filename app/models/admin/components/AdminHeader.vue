@@ -1,24 +1,33 @@
 <script setup lang="ts">
 import { useAdminStore } from '~/models/admin/AdminStore'
+import { useAuthStore } from '~/models/auth/AuthStore'
 
 const route = useRoute()
 const adminStore = useAdminStore()
+const authStore = useAuthStore()
+
+const interval = ref<ReturnType<typeof setInterval>>()
 
 onMounted(() => {
+  authStore.init()
   adminStore.fetchCounts()
-})
-
-const interval = ref<NodeJS.Timeout>()
-onMounted(() => {
   interval.value = setInterval(() => {
     adminStore.fetchCounts()
   }, 60000)
 })
+
 onUnmounted(() => {
   if (interval.value) clearInterval(interval.value)
 })
 
-const navItems = computed(() => [
+interface NavItem {
+  label: string
+  icon: string
+  to: string
+  badge?: number
+}
+
+const navItems = computed<NavItem[]>(() => [
   {
     label: 'Замовлення',
     icon: 'i-heroicons-shopping-cart',
@@ -49,6 +58,7 @@ const navItems = computed(() => [
 ])
 
 const isMobileMenuOpen = ref(false)
+const showUserMenu = ref(false)
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -58,15 +68,22 @@ function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
 
-function isActive(item: any) {
+function isActive(item: NavItem) {
   if (item.to === '/admin') {
     return route.path === '/admin'
   }
   return route.path.startsWith(item.to)
 }
 
+async function handleLogout() {
+  closeMobileMenu()
+  showUserMenu.value = false
+  await authStore.logout()
+}
+
 watch(() => route.path, () => {
   closeMobileMenu()
+  showUserMenu.value = false
 })
 </script>
 
@@ -74,8 +91,7 @@ watch(() => route.path, () => {
   <header class="bg-gray-900 h-[70px] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 lg:px-8 h-full">
       <div class="flex items-center justify-between h-full">
-
-        <NuxtLink to="/" class="flex-shrink-0">
+        <NuxtLink to="/admin/orders" class="flex-shrink-0">
           <span
             class="text-white text-2xl lg:text-3xl tracking-[0.25em]"
             style="font-family: 'Bebas Neue', sans-serif; font-weight: 400;"
@@ -116,11 +132,42 @@ watch(() => route.path, () => {
             <span class="text-sm">На сайт</span>
           </NuxtLink>
 
-          <div class="hidden sm:flex items-center gap-2 pl-4 border-l border-gray-700">
-            <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-              <UIcon name="i-heroicons-user" class="w-4 h-4 text-white" />
-            </div>
-            <span class="text-sm font-medium text-gray-300">Admin</span>
+          <div class="hidden sm:block relative pl-4 border-l border-gray-700">
+            <button
+              class="flex items-center gap-2 hover:bg-gray-800 rounded-lg px-2 py-1.5 transition-colors"
+              @click="showUserMenu = !showUserMenu"
+            >
+              <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                <UIcon name="i-heroicons-user" class="w-4 h-4 text-white" />
+              </div>
+              <span class="text-sm font-medium text-gray-300">
+                {{ authStore.admin?.name || 'Admin' }}
+              </span>
+              <UIcon
+                name="i-heroicons-chevron-down"
+                class="w-4 h-4 text-gray-400 transition-transform"
+                :class="{ 'rotate-180': showUserMenu }"
+              />
+            </button>
+
+            <Transition name="dropdown">
+              <div
+                v-if="showUserMenu"
+                class="absolute right-0 top-full mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden z-50"
+              >
+                <div class="px-4 py-3 border-b border-gray-700">
+                  <p class="text-sm font-medium text-white">{{ authStore.admin?.name }}</p>
+                  <p class="text-xs text-gray-400">{{ authStore.admin?.role }}</p>
+                </div>
+                <button
+                  class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+                  @click="handleLogout"
+                >
+                  <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
+                  Вийти
+                </button>
+              </div>
+            </Transition>
           </div>
 
           <button
@@ -141,6 +188,12 @@ watch(() => route.path, () => {
         </div>
       </div>
     </div>
+
+    <div
+      v-if="showUserMenu"
+      class="fixed inset-0 z-40"
+      @click="showUserMenu = false"
+    />
   </header>
 
   <Teleport to="body">
@@ -205,8 +258,19 @@ watch(() => route.path, () => {
             <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
               <UIcon name="i-heroicons-user" class="w-4 h-4 text-white" />
             </div>
-            <span class="text-sm font-medium text-gray-300">Admin</span>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-300">{{ authStore.admin?.name || 'Admin' }}</p>
+              <p class="text-xs text-gray-500">{{ authStore.admin?.role || 'admin' }}</p>
+            </div>
           </div>
+
+          <button
+            class="w-full flex items-center justify-center gap-2 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors"
+            @click="handleLogout"
+          >
+            <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-5 h-5" />
+            <span>Вийти</span>
+          </button>
         </div>
       </div>
     </Transition>
@@ -232,5 +296,16 @@ watch(() => route.path, () => {
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

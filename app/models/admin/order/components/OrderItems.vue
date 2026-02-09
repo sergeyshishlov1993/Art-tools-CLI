@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OrderItem } from '~/models/admin/types/orders'
+import type { OrderItem } from '~/models/admin/types/Orders'
 import { useOrderHelpers } from '../composables/useOrderHelpers'
 
 interface Props {
@@ -14,7 +14,6 @@ const emit = defineEmits<{
 
 const { formatPrice } = useOrderHelpers()
 
-// Є знижка якщо old_price більше за price
 function hasDiscount(item: OrderItem): boolean {
   return !!(item.old_price && item.old_price > item.price)
 }

@@ -1,4 +1,3 @@
-// composables/useAdminSocket.ts
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client'
 import { useAdminStore } from '~/models/admin/AdminStore'
@@ -24,26 +23,20 @@ export function useAdminSocket() {
     socket.on('connect', () => {
       isConnected.value = true
       socket?.emit('join-admin')
-      console.log('🔌 WebSocket connected')
     })
 
     socket.on('disconnect', () => {
       isConnected.value = false
-      console.log('🔌 WebSocket disconnected')
     })
 
-    // Нове замовлення
     socket.on('new-order', (data) => {
-      console.log('🛒 New order:', data)
       adminStore.incrementOrders()
       playSound()
       showNotification('🛒 Нове замовлення!', `#${data.orderNumber} — ${data.name}`)
       orderCallbacks.forEach(cb => cb(data))
     })
 
-    // Новий відгук
     socket.on('new-feedback', (data) => {
-      console.log('💬 New feedback:', data)
       adminStore.incrementFeedback()
       playSound()
       showNotification('💬 Нова заявка!', data.name)

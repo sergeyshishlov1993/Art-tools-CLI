@@ -13,23 +13,18 @@ const toast = useToast()
 const adminStore = useAdminStore()
 const { onNewFeedback } = useAdminSocket()
 
-// State
 const feedbackList = ref<Feedback[]>([])
 const loading = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
-
-// Delete modal
 const deleteModal = ref(false)
 const deleting = ref(false)
 const feedbackToDelete = ref<Feedback | null>(null)
-
-// Computed
 const newCount = computed(() => feedbackList.value.filter(f => f.status !== 'Виконано').length)
 const doneCount = computed(() => feedbackList.value.filter(f => f.status === 'Виконано').length)
 
-// Load data
+
 async function loadFeedback() {
   loading.value = true
   try {
@@ -38,33 +33,30 @@ async function loadFeedback() {
     totalPages.value = res.totalPages
     totalItems.value = res.totalItems
   } catch {
-    toast.add({ title: 'Помилка завантаження', color: 'red' })
+    toast.add({ title: 'Помилка завантаження', color: 'error' })
   } finally {
     loading.value = false
   }
 }
 
-// WebSocket
 if (import.meta.client) {
   onNewFeedback(async (data) => {
     await loadFeedback()
-    toast.add({ title: `Нова заявка від ${data.name}`, color: 'green' })
+    toast.add({ title: `Нова заявка від ${data.name}`, color: 'success' })
   })
 }
 
-// Mark as done
 async function markAsDone(item: Feedback) {
   try {
     await api.changeStatus(item.id)
     item.status = 'Виконано'
     adminStore.decrementFeedback()
-    toast.add({ title: 'Статус змінено', color: 'green' })
+    toast.add({ title: 'Статус змінено', color: 'success' })
   } catch {
-    toast.add({ title: 'Помилка', color: 'red' })
+    toast.add({ title: 'Помилка', color: 'error' })
   }
 }
 
-// Delete
 function confirmDelete(item: Feedback) {
   feedbackToDelete.value = item
   deleteModal.value = true
@@ -80,23 +72,21 @@ async function deleteFeedback() {
     feedbackList.value = feedbackList.value.filter(f => f.id !== feedbackToDelete.value!.id)
     totalItems.value--
     if (wasNew) adminStore.decrementFeedback()
-    toast.add({ title: 'Видалено', color: 'green' })
+    toast.add({ title: 'Видалено', color: 'success' })
     deleteModal.value = false
   } catch {
-    toast.add({ title: 'Помилка видалення', color: 'red' })
+    toast.add({ title: 'Помилка видалення', color: 'error' })
   } finally {
     deleting.value = false
     feedbackToDelete.value = null
   }
 }
 
-// Pagination
 function goToPage(page: number) {
   currentPage.value = page
   loadFeedback()
 }
 
-// Helpers
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString('uk-UA', {
     day: '2-digit',
@@ -123,7 +113,6 @@ onMounted(loadFeedback)
 
 <template>
   <div class="feedback-page">
-    <!-- Header -->
     <header class="page-header">
       <div class="header-left">
         <h1 class="page-title">💬 Зворотній зв'язок</h1>
@@ -135,7 +124,6 @@ onMounted(loadFeedback)
       </button>
     </header>
 
-    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card stat-new">
         <div class="stat-icon">📥</div>
@@ -160,22 +148,18 @@ onMounted(loadFeedback)
       </div>
     </div>
 
-    <!-- Content -->
     <Transition name="fade" mode="out-in">
-      <!-- Loading -->
       <div v-if="loading" key="loading" class="loading-state">
         <div class="spinner" />
         <p>Завантаження...</p>
       </div>
 
-      <!-- Empty -->
       <div v-else-if="feedbackList.length === 0" key="empty" class="empty-state">
         <div class="empty-icon">📭</div>
         <h3>Заявок поки немає</h3>
         <p>Нові заявки з'являться тут</p>
       </div>
 
-      <!-- Table -->
       <div v-else key="table" class="table-container">
         <table class="feedback-table">
           <thead>
@@ -249,7 +233,6 @@ onMounted(loadFeedback)
       </div>
     </Transition>
 
-    <!-- Pagination -->
     <div v-if="totalPages > 1" class="pagination">
       <button
         class="page-btn"
@@ -276,7 +259,6 @@ onMounted(loadFeedback)
       </button>
     </div>
 
-    <!-- Delete Modal -->
     <ConfirmModal
       v-model="deleteModal"
       title="Видалити заявку?"

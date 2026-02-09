@@ -18,6 +18,7 @@ export interface OrderItem {
   order_name: string
   product_img?: string
   price: number
+  old_price?: number
   count: number
   discount?: number
   discounted_product?: boolean

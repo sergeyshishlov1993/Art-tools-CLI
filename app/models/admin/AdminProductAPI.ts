@@ -1,5 +1,12 @@
 import { useApiClient } from '~/models/common/composables/useApiClient'
 
+export interface ProductParameter {
+  id?: number
+  parameter_name: string
+  parameter_value: string
+  slug?: string
+}
+
 export interface AdminProduct {
   product_id: string
   slug: string
@@ -13,10 +20,11 @@ export interface AdminProduct {
   sale: string
   sub_category_id: string
   custom_product: boolean
+  product_description?: string
   createdAt: string
   updatedAt: string
   pictures: { id?: string; pictures_name: string }[]
-  params?: { id: number; parameter_name: string; parameter_value: string; slug: string }[]
+  params?: ProductParameter[]
   subCategory?: {
     sub_category_id: string
     sub_category_name: string
@@ -60,6 +68,22 @@ export interface CreateProductData {
   sale?: string
   sub_category_id: string
   product_description?: string
+  pictures?: string[]
+  parameters?: { name: string; value: string }[]
+}
+
+export interface UpdateProductData {
+  product_name?: string
+  brand?: string
+  price?: string
+  sale_price?: string
+  discount?: number
+  available?: string
+  bestseller?: string
+  sale?: string
+  sub_category_id?: string
+  product_description?: string
+  parameters?: { name: string; value: string }[]
 }
 
 export function useAdminProductAPI() {
@@ -84,7 +108,7 @@ export function useAdminProductAPI() {
     createProduct: (data: CreateProductData) =>
       api.post<{ product: AdminProduct; message: string }>('', data),
 
-    updateProduct: (id: string, data: Partial<AdminProduct>) =>
+    updateProduct: (id: string, data: UpdateProductData) =>
       api.put<{ product: AdminProduct; message: string }>(`/${id}`, data),
 
     deleteProduct: (id: string) =>

@@ -2,7 +2,6 @@
   <div class="category-manager">
     <h1>Управління категоріями</h1>
 
-    <!-- Статистика -->
     <div v-if="overview" class="stats-grid">
       <div class="stat-card">
         <div class="stat-value">{{ overview.stats.total }}</div>
@@ -22,7 +21,6 @@
       </div>
     </div>
 
-    <!-- Повідомлення -->
     <div v-if="error" class="alert error" @click="error = null">
       {{ error }}
     </div>
@@ -30,7 +28,6 @@
       {{ success }}
     </div>
 
-    <!-- Табки -->
     <div class="tabs">
       <button
         :class="{ active: activeTab === 'unmapped' }"
@@ -58,13 +55,9 @@
       </button>
     </div>
 
-    <!-- Контент табів -->
     <div class="tab-content">
-
-      <!-- Незамаплені категорії -->
       <div v-if="activeTab === 'unmapped'" class="unmapped-section">
         <div class="two-columns">
-          <!-- Ліва колонка: незамаплені -->
           <div class="column">
             <h3>Категорії постачальників</h3>
             <div class="category-list">
@@ -81,7 +74,6 @@
             </div>
           </div>
 
-          <!-- Права колонка: наші категорії -->
           <div class="column">
             <h3>Наші категорії</h3>
             <input
@@ -105,7 +97,6 @@
           </div>
         </div>
 
-        <!-- Кнопка маппінгу -->
         <div v-if="mapForm.from && mapForm.to" class="map-action">
           <p>
             <strong>{{ getFromCategoryName() }}</strong>
@@ -118,10 +109,8 @@
         </div>
       </div>
 
-      <!-- Замаплені категорії -->
       <div v-if="activeTab === 'mapped'" class="mapped-section">
         <div class="two-columns">
-          <!-- Ліва: список категорій -->
           <div class="column">
             <h3>Категорії з товарами</h3>
             <div class="category-list">
@@ -139,7 +128,6 @@
             </div>
           </div>
 
-          <!-- Права: товари в категорії -->
           <div class="column">
             <h3>Товари в категорії</h3>
             <div v-if="selectedCategory">
@@ -170,14 +158,12 @@
                 </div>
               </div>
 
-              <!-- Пагінація -->
               <div class="pagination">
-                <button :disabled="page <= 1" @click="page--; fetchProducts()">←</button>
+                <button :disabled="page <= 1" @click="prevPage">←</button>
                 <span>{{ page }} / {{ totalPages }}</span>
-                <button :disabled="page >= totalPages" @click="page++; fetchProducts()">→</button>
+                <button :disabled="page >= totalPages" @click="nextPage">→</button>
               </div>
 
-              <!-- Ремап вибраних -->
               <div v-if="selectedProducts.length > 0" class="remap-section">
                 <p>Вибрано: {{ selectedProducts.length }} товарів</p>
                 <select v-model="remapTo" class="select-input">
@@ -188,7 +174,7 @@
                     :label="cat.category_name"
                   >
                     <option
-                      v-for="sub in getSubcategoriesFor(cat.category_id)"
+                      v-for="sub in allSubcategories"
                       :key="sub.id"
                       :value="sub.id"
                     >
@@ -215,10 +201,8 @@
         </div>
       </div>
 
-      <!-- Структура категорій -->
       <div v-if="activeTab === 'structure'" class="structure-section">
         <div class="two-columns">
-          <!-- Ліва: дерево категорій -->
           <div class="column">
             <h3>Категорії</h3>
             <div class="category-tree">
@@ -235,7 +219,7 @@
                 </div>
                 <div v-if="expanded[cat.category_id]" class="tree-children">
                   <div
-                    v-for="sub in getSubcategoriesFor(cat.category_id)"
+                    v-for="sub in allSubcategories"
                     :key="sub.id"
                     class="tree-child"
                   >
@@ -247,7 +231,6 @@
             </div>
           </div>
 
-          <!-- Права: форми створення -->
           <div class="column">
             <h3>Додати категорію</h3>
             <form class="form" @submit.prevent="createCategory">
@@ -303,7 +286,6 @@
         </div>
       </div>
 
-      <!-- Постачальники -->
       <div v-if="activeTab === 'suppliers'" class="suppliers-section">
         <h3>Постачальники</h3>
         <div class="suppliers-grid">
@@ -322,47 +304,97 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-
+<script setup lang="ts">
 definePageMeta({
   layout: 'admin'
 })
 
+interface OverviewStats {
+  total: number
+  mapped: number
+  unmapped: number
+  percent_mapped: string
+}
+
+interface OverviewCategory {
+  category_id: string
+  category_name: string
+  subcategories_count: number
+}
+
+interface Overview {
+  stats: OverviewStats
+  my?: {
+    categories: OverviewCategory[]
+  }
+}
+
+interface UnmappedCategory {
+  supplier_sub_category_id: string
+  supplier_sub_category_name: string
+  product_count: number
+}
+
+interface MyCategory {
+  id: string
+  name: string
+  parent_name?: string
+}
+
+interface UnmappedData {
+  categories: UnmappedCategory[]
+  my_categories: MyCategory[]
+  total_unmapped: number
+}
+
+interface MappedCategory {
+  sub_category_id: string
+  sub_category_name: string
+  category_name: string
+  product_count: number
+}
+
+interface Product {
+  product_id: string
+  name: string
+  price: number
+  supplier_prefix: string
+}
+
+interface Supplier {
+  supplier_prefix: string
+  supplier_name?: string
+  product_count: number
+}
+
 const config = useRuntimeConfig()
 const API_URL = config.public.apiBase || 'http://localhost:8000/api'
 
-// Стани
-const activeTab = ref('unmapped')
+const activeTab = ref<'unmapped' | 'mapped' | 'structure' | 'suppliers'>('unmapped')
 const loading = ref(false)
-const error = ref(null)
-const success = ref(null)
+const error = ref<string | null>(null)
+const success = ref<string | null>(null)
 
-// Дані
-const overview = ref(null)
-const unmapped = ref({ categories: [], my_categories: [], total_unmapped: 0 })
-const mapped = ref([])
-const suppliers = ref([])
-const products = ref([])
-const selectedCategory = ref(null)
+const overview = ref<Overview | null>(null)
+const unmapped = ref<UnmappedData>({ categories: [], my_categories: [], total_unmapped: 0 })
+const mapped = ref<MappedCategory[]>([])
+const suppliers = ref<Supplier[]>([])
+const products = ref<Product[]>([])
+const selectedCategory = ref<MappedCategory | null>(null)
 
-// Форми
 const newCategory = ref({ name: '', id: '' })
 const newSubCategory = ref({ name: '', id: '', parentId: '', picture: '' })
 const mapForm = ref({ from: '', to: '' })
-const selectedProducts = ref([])
+const selectedProducts = ref<string[]>([])
 const remapTo = ref('')
 
-// Пагінація та пошук
 const page = ref(1)
 const totalPages = ref(1)
 const productSearch = ref('')
 const categorySearch = ref('')
 
-// Expanded state для дерева
-const expanded = ref({})
+const expanded = ref<Record<string, boolean>>({})
 
-// === Computed ===
 const filteredMyCategories = computed(() => {
   if (!categorySearch.value) return unmapped.value.my_categories
   const search = categorySearch.value.toLowerCase()
@@ -372,47 +404,48 @@ const filteredMyCategories = computed(() => {
   )
 })
 
-// === API функції ===
+const allSubcategories = computed(() => unmapped.value.my_categories)
+
 async function fetchOverview() {
   try {
-    const data = await $fetch(`${API_URL}admin/categories/overview`)
+    const data = await $fetch<Overview>(`${API_URL}admin/categories/overview`)
     overview.value = data
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
 async function fetchUnmapped() {
   try {
-    const data = await $fetch(`${API_URL}admin/categories/unmapped`)
+    const data = await $fetch<UnmappedData>(`${API_URL}admin/categories/unmapped`)
     unmapped.value = data
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
 async function fetchMapped() {
   try {
-    const data = await $fetch(`${API_URL}admin/categories/mapped`)
+    const data = await $fetch<{ categories: MappedCategory[] }>(`${API_URL}admin/categories/mapped`)
     mapped.value = data.categories || []
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
 async function fetchSuppliers() {
   try {
-    const data = await $fetch(`${API_URL}admin/categories/suppliers`)
+    const data = await $fetch<{ suppliers: Supplier[] }>(`${API_URL}admin/categories/suppliers`)
     suppliers.value = data.suppliers || []
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
 async function fetchProducts() {
   if (!selectedCategory.value) return
   try {
-    const data = await $fetch(
+    const data = await $fetch<{ products: Product[]; pages: number }>(
       `${API_URL}admin/categories/${selectedCategory.value.sub_category_id}/products`,
       {
         params: {
@@ -424,17 +457,16 @@ async function fetchProducts() {
     )
     products.value = data.products || []
     totalPages.value = data.pages || 1
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
-// === Дії ===
-function selectFromCategory(cat) {
+function selectFromCategory(cat: UnmappedCategory) {
   mapForm.value.from = cat.supplier_sub_category_id
 }
 
-function selectToCategory(cat) {
+function selectToCategory(cat: MyCategory) {
   mapForm.value.to = cat.id
 }
 
@@ -453,7 +485,7 @@ async function mapCategory() {
 
   loading.value = true
   try {
-    const data = await $fetch(`${API_URL}admin/categories/map`, {
+    const data = await $fetch<{ moved_products: number }>(`${API_URL}admin/categories/map`, {
       method: 'POST',
       body: {
         from_sub_category_id: mapForm.value.from,
@@ -463,21 +495,21 @@ async function mapCategory() {
     success.value = `Переміщено ${data.moved_products} товарів`
     mapForm.value = { from: '', to: '' }
     await Promise.all([fetchOverview(), fetchUnmapped(), fetchMapped()])
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-function selectMappedCategory(cat) {
+function selectMappedCategory(cat: MappedCategory) {
   selectedCategory.value = cat
   page.value = 1
   selectedProducts.value = []
   fetchProducts()
 }
 
-function toggleProductSelection(productId) {
+function toggleProductSelection(productId: string) {
   const index = selectedProducts.value.indexOf(productId)
   if (index > -1) {
     selectedProducts.value.splice(index, 1)
@@ -486,12 +518,22 @@ function toggleProductSelection(productId) {
   }
 }
 
+function prevPage() {
+  page.value--
+  fetchProducts()
+}
+
+function nextPage() {
+  page.value++
+  fetchProducts()
+}
+
 async function remapProducts() {
   if (!remapTo.value || selectedProducts.value.length === 0) return
 
   loading.value = true
   try {
-    const data = await $fetch(`${API_URL}admin/categories/remap`, {
+    const data = await $fetch<{ moved_products: number }>(`${API_URL}admin/categories/remap`, {
       method: 'POST',
       body: {
         product_ids: selectedProducts.value,
@@ -502,22 +544,14 @@ async function remapProducts() {
     selectedProducts.value = []
     remapTo.value = ''
     await Promise.all([fetchOverview(), fetchMapped(), fetchProducts()])
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-function getSubcategoriesFor(categoryId) {
-  return unmapped.value.my_categories.filter(sub => {
-    // Потрібно отримати parent_id з назви або окремим запитом
-    // Поки просто повернемо всі
-    return true
-  })
-}
-
-function toggleExpand(categoryId) {
+function toggleExpand(categoryId: string) {
   expanded.value[categoryId] = !expanded.value[categoryId]
 }
 
@@ -536,8 +570,8 @@ async function createCategory() {
     success.value = 'Категорію створено'
     newCategory.value = { name: '', id: '' }
     await fetchOverview()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
@@ -560,14 +594,14 @@ async function createSubcategory() {
     success.value = 'Підкатегорію створено'
     newSubCategory.value = { name: '', id: '', parentId: '', picture: '' }
     await Promise.all([fetchOverview(), fetchUnmapped()])
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   } finally {
     loading.value = false
   }
 }
 
-async function deleteCategory(id) {
+async function deleteCategory(id: string) {
   if (!confirm('Видалити категорію?')) return
 
   try {
@@ -576,12 +610,12 @@ async function deleteCategory(id) {
     })
     success.value = 'Категорію видалено'
     await fetchOverview()
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
-async function deleteSubcategory(id) {
+async function deleteSubcategory(id: string) {
   if (!confirm('Видалити підкатегорію?')) return
 
   try {
@@ -590,37 +624,31 @@ async function deleteSubcategory(id) {
     })
     success.value = 'Підкатегорію видалено'
     await Promise.all([fetchOverview(), fetchUnmapped()])
-  } catch (err) {
-    error.value = err.data?.error || err.message
+  } catch (err: unknown) {
+    error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
 }
 
-// Debounce для пошуку
-let searchTimeout = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
 function debouncedFetchProducts() {
-  clearTimeout(searchTimeout)
+  if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     page.value = 1
     fetchProducts()
   }, 300)
 }
 
-// === Watchers ===
 watch(activeTab, (tab) => {
   if (tab === 'unmapped') fetchUnmapped()
   if (tab === 'mapped') fetchMapped()
   if (tab === 'suppliers') fetchSuppliers()
 })
 
-// === Lifecycle ===
 onMounted(async () => {
-  await Promise.all([
-    fetchOverview(),
-    fetchUnmapped()
-  ])
+  await Promise.all([fetchOverview(), fetchUnmapped()])
 })
 
-// Автоочищення повідомлень
 watch([error, success], () => {
   setTimeout(() => {
     error.value = null
@@ -641,7 +669,6 @@ h1 {
   color: #333;
 }
 
-/* Статистика */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -654,7 +681,7 @@ h1 {
   border-radius: 8px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card.success { border-left: 4px solid #4caf50; }
@@ -672,7 +699,6 @@ h1 {
   margin-top: 5px;
 }
 
-/* Алерти */
 .alert {
   padding: 12px 20px;
   border-radius: 6px;
@@ -692,7 +718,6 @@ h1 {
   border: 1px solid #a5d6a7;
 }
 
-/* Табки */
 .tabs {
   display: flex;
   gap: 5px;
@@ -720,7 +745,6 @@ h1 {
   color: white;
 }
 
-/* Двоколонковий лейаут */
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -731,7 +755,7 @@ h1 {
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .column h3 {
@@ -741,7 +765,6 @@ h1 {
   padding-bottom: 10px;
 }
 
-/* Списки категорій */
 .category-list {
   max-height: 500px;
   overflow-y: auto;
@@ -788,7 +811,6 @@ h1 {
   align-self: flex-start;
 }
 
-/* Пошук */
 .search-input {
   width: 100%;
   padding: 10px 12px;
@@ -803,14 +825,13 @@ h1 {
   border-color: #1976d2;
 }
 
-/* Кнопка маппінгу */
 .map-action {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
   margin-top: 20px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .map-action p {
@@ -818,7 +839,6 @@ h1 {
   font-size: 16px;
 }
 
-/* Кнопки */
 .btn {
   padding: 10px 24px;
   border: none;
@@ -869,7 +889,6 @@ h1 {
   background: #ffcdd2;
 }
 
-/* Список товарів */
 .products-list {
   max-height: 400px;
   overflow-y: auto;
@@ -913,7 +932,6 @@ h1 {
   border-radius: 4px;
 }
 
-/* Пагінація */
 .pagination {
   display: flex;
   justify-content: center;
@@ -937,7 +955,6 @@ h1 {
   cursor: not-allowed;
 }
 
-/* Ремап секція */
 .remap-section {
   margin-top: 15px;
   padding: 15px;
@@ -956,7 +973,6 @@ h1 {
   min-width: 200px;
 }
 
-/* Дерево категорій */
 .category-tree {
   max-height: 500px;
   overflow-y: auto;
@@ -1004,7 +1020,6 @@ h1 {
   margin-bottom: 3px;
 }
 
-/* Постачальники */
 .suppliers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -1015,7 +1030,7 @@ h1 {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .supplier-name {
@@ -1036,7 +1051,6 @@ h1 {
   color: #1976d2;
 }
 
-/* Форми */
 .form {
   display: flex;
   flex-direction: column;
@@ -1058,14 +1072,12 @@ h1 {
   border-color: #1976d2;
 }
 
-/* Плейсхолдер */
 .placeholder {
   text-align: center;
   color: #888;
   padding: 40px;
 }
 
-/* Адаптив */
 @media (max-width: 900px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
