@@ -30,28 +30,29 @@ const contacts = [
 ] as const
 
 const isExpanded = ref(false)
-const supportsHover = ref(false)
+const isTouchDevice = ref(false)
 
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
-onMounted(() => {
-  supportsHover.value = window.matchMedia('(hover: hover) and (pointer: fine)').matches
-})
+function handleTouchStart() {
+  isTouchDevice.value = true
+}
 
 function handleMouseEnter() {
-  if (!supportsHover.value) return
+  if (isTouchDevice.value) return
   if (hoverTimeout) clearTimeout(hoverTimeout)
-  if (!isExpanded.value) isExpanded.value = true
+  isExpanded.value = true
 }
 
 function handleMouseLeave() {
-  if (!supportsHover.value) return
+  if (isTouchDevice.value) return
   hoverTimeout = setTimeout(() => {
     isExpanded.value = false
   }, 300)
 }
 
-function toggle() {
+function handleClick() {
+  if (!isTouchDevice.value) return
   isExpanded.value = !isExpanded.value
 }
 
@@ -64,6 +65,8 @@ onUnmounted(() => {
   <div
     class="quick-contact"
     :class="{ 'product-page': isProductPage }"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <Transition name="contacts">
       <div v-show="isExpanded" class="contact-buttons">
@@ -96,9 +99,8 @@ onUnmounted(() => {
       class="main-btn"
       :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
-      @click="toggle"
-      @mouseenter="handleMouseEnter"
-      @mouseleave="handleMouseLeave"
+      @touchstart.passive="handleTouchStart"
+      @click="handleClick"
     >
       <span class="main-btn-content">
         <svg
