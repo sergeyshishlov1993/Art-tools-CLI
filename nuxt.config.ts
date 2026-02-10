@@ -27,6 +27,12 @@ export default defineNuxtConfig({
     },
   },
 
+  ui: {
+    icons: {
+      include: ['heroicons'],
+    },
+  },
+
   // @ts-expect-error nuxt-gtag types not compatible with Nuxt 4 yet
   gtag: {
     id: 'GTM-TWLP3CW3',
