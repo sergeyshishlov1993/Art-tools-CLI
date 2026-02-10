@@ -21,6 +21,12 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
   ],
 
+  icon: {
+    serverBundle: {
+      collections: ['heroicons'],
+    },
+  },
+
   // @ts-expect-error nuxt-gtag types not compatible with Nuxt 4 yet
   gtag: {
     id: 'GTM-TWLP3CW3',
