@@ -30,31 +30,28 @@ const contacts = [
 ] as const
 
 const isExpanded = ref(false)
-const isTouchDevice = ref(false)
+const canHover = ref(false)
 
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
-function handleTouchStart(event: TouchEvent) {
-  event.preventDefault()
-  isTouchDevice.value = true
-  isExpanded.value = !isExpanded.value
-}
+onMounted(() => {
+  canHover.value = window.matchMedia('(hover: hover)').matches
+})
 
 function handleMouseEnter() {
-  if (isTouchDevice.value) return
+  if (!canHover.value) return
   if (hoverTimeout) clearTimeout(hoverTimeout)
   isExpanded.value = true
 }
 
 function handleMouseLeave() {
-  if (isTouchDevice.value) return
+  if (!canHover.value) return
   hoverTimeout = setTimeout(() => {
     isExpanded.value = false
   }, 300)
 }
 
-function handleClick() {
-  if (isTouchDevice.value) return
+function handleToggle() {
   isExpanded.value = !isExpanded.value
 }
 
@@ -101,8 +98,7 @@ onUnmounted(() => {
       class="main-btn"
       :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
-      @touchstart.prevent="handleTouchStart"
-      @click="handleClick"
+      @click="handleToggle"
     >
       <span class="main-btn-content">
         <svg
@@ -114,7 +110,7 @@ onUnmounted(() => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
         <svg
           class="main-icon close-icon"
@@ -125,8 +121,8 @@ onUnmounted(() => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </span>
 
@@ -171,10 +167,12 @@ onUnmounted(() => {
   touch-action: manipulation;
 }
 
-.contact-btn:hover {
-  background: var(--hover-color);
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+@media (hover: hover) {
+  .contact-btn:hover {
+    background: var(--hover-color);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
 }
 
 .contact-btn:active {
@@ -201,9 +199,15 @@ onUnmounted(() => {
   touch-action: manipulation;
 }
 
-.main-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
+@media (hover: hover) {
+  .main-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
+  }
+
+  .main-btn.is-expanded:hover {
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.5);
+  }
 }
 
 .main-btn:active {
@@ -213,10 +217,6 @@ onUnmounted(() => {
 .main-btn.is-expanded {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
-}
-
-.main-btn.is-expanded:hover {
-  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.5);
 }
 
 .main-btn-content {
