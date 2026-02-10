@@ -2,8 +2,10 @@
 import { CONTACTS } from '~/models/common/constants/contacts'
 
 const route = useRoute()
+const viewport = useViewport()
 
 const isProductPage = computed(() => route.path.startsWith('/product/'))
+const isMobile = computed(() => viewport.isLessThan('lg'))
 
 const contacts = [
   {
@@ -30,22 +32,14 @@ const contacts = [
 ] as const
 
 const isExpanded = ref(false)
-const canHover = ref(false)
-
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
-onMounted(() => {
-  canHover.value = window.matchMedia('(hover: hover)').matches
-})
-
 function handleMouseEnter() {
-  if (!canHover.value) return
   if (hoverTimeout) clearTimeout(hoverTimeout)
   isExpanded.value = true
 }
 
 function handleMouseLeave() {
-  if (!canHover.value) return
   hoverTimeout = setTimeout(() => {
     isExpanded.value = false
   }, 300)
@@ -64,8 +58,7 @@ onUnmounted(() => {
   <div
     class="quick-contact"
     :class="{ 'product-page': isProductPage }"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
+    v-bind="!isMobile ? { onMouseenter: handleMouseEnter, onMouseleave: handleMouseLeave } : {}"
   >
     <Transition name="contacts">
       <div v-show="isExpanded" class="contact-buttons">
@@ -101,31 +94,14 @@ onUnmounted(() => {
       @click="handleToggle"
     >
       <span class="main-btn-content">
-        <svg
-          class="main-icon chat-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg class="main-icon chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
-        <svg
-          class="main-icon close-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg class="main-icon close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </span>
-
       <span v-if="!isExpanded" class="pulse-ring" />
       <span v-if="!isExpanded" class="pulse-ring delay" />
     </button>
@@ -269,25 +245,13 @@ onUnmounted(() => {
 }
 
 @keyframes popIn {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50%, 100% {
-    transform: scale(1.5);
-    opacity: 0;
-  }
+  0% { transform: scale(1); opacity: 0.8; }
+  50%, 100% { transform: scale(1.5); opacity: 0; }
 }
 
 .contacts-enter-active {
