@@ -2,11 +2,8 @@
 import { CONTACTS } from '~/models/common/constants/contacts'
 
 const route = useRoute()
-const viewport = useViewport()
 
 const isProductPage = computed(() => route.path.startsWith('/product/'))
-const isMobile = computed(() => viewport.isLessThan('lg'))
-const canHover = ref(false)
 
 const contacts = [
   {
@@ -33,20 +30,6 @@ const contacts = [
 ] as const
 
 const isExpanded = ref(false)
-let hoverTimeout: ReturnType<typeof setTimeout> | null = null
-
-function handleMouseEnter() {
-  if (!canHover.value) return
-  if (hoverTimeout) clearTimeout(hoverTimeout)
-  isExpanded.value = true
-}
-
-function handleMouseLeave() {
-  if (!canHover.value) return
-  hoverTimeout = setTimeout(() => {
-    isExpanded.value = false
-  }, 300)
-}
 
 function handleToggle() {
   isExpanded.value = !isExpanded.value
@@ -60,12 +43,10 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 onMounted(() => {
-  canHover.value = window.matchMedia('(hover: hover)').matches
   document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
-  if (hoverTimeout) clearTimeout(hoverTimeout)
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
@@ -73,34 +54,33 @@ onUnmounted(() => {
 <template>
   <div
     class="quick-contact"
-    :class="{ 'product-page': isProductPage }"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
+    :class="{
+      'product-page': isProductPage,
+      'is-expanded': isExpanded
+    }"
   >
-    <Transition name="contacts">
-      <div v-show="isExpanded" class="contact-buttons">
-        <a
-          v-for="(contact, index) in contacts"
-          :key="contact.name"
-          :href="contact.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="contact-btn"
-          :style="{
-            '--delay': `${index * 0.05}s`,
-            '--color': contact.color,
-            '--hover-color': contact.hoverColor
-          }"
-          :title="contact.name"
-        >
-          <img :src="contact.icon" :alt="contact.name" class="contact-icon" width="24" height="24">
-        </a>
-      </div>
-    </Transition>
+    <div class="contact-buttons">
+      <a
+        v-for="(contact, index) in contacts"
+        :key="contact.name"
+        :href="contact.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="contact-btn"
+        :style="{
+          '--delay': `${index * 0.05}s`,
+          '--color': contact.color,
+          '--hover-color': contact.hoverColor
+        }"
+        :title="contact.name"
+        @click.stop
+      >
+        <img :src="contact.icon" :alt="contact.name" class="contact-icon" width="24" height="24">
+      </a>
+    </div>
 
     <button
       class="main-btn"
-      :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
       @click.stop="handleToggle"
     >
@@ -113,8 +93,8 @@ onUnmounted(() => {
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </span>
-      <span v-if="!isExpanded" class="pulse-ring" />
-      <span v-if="!isExpanded" class="pulse-ring delay" />
+      <span class="pulse-ring" />
+      <span class="pulse-ring delay" />
     </button>
   </div>
 </template>
@@ -136,6 +116,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Скрыто по умолчанию */
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .contact-btn {
@@ -148,22 +131,49 @@ onUnmounted(() => {
   background: var(--color);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: scale(0);
-  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  animation-delay: var(--delay);
-  touch-action: manipulation;
+
+  /* Начальное состояние анимации */
+  transform: scale(0) translateY(20px);
+  opacity: 0;
+
+  /* Убираем animation, используем transition для управления через классы/ховер */
+  transition-delay: 0s;
 }
 
+/* --- ЛОГИКА ОТОБРАЖЕНИЯ --- */
+
+/* 1. Мобилка / Клик (JS класс .is-expanded) */
+.quick-contact.is-expanded .contact-buttons {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.quick-contact.is-expanded .contact-btn {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  transition-delay: var(--delay);
+}
+
+/* 2. Десктоп (CSS Hover) - только если есть мышь */
 @media (hover: hover) {
+  .quick-contact:hover .contact-buttons {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .quick-contact:hover .contact-btn {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    transition-delay: var(--delay);
+  }
+
   .contact-btn:hover {
     background: var(--hover-color);
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(0);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    /* Отключаем задержку при ховере на саму кнопку, чтобы она реагировала мгновенно */
+    transition-delay: 0s !important;
   }
-}
-
-.contact-btn:active {
-  transform: scale(0.95);
 }
 
 .contact-icon {
@@ -184,6 +194,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
+  z-index: 2; /* Поверх кнопок */
 }
 
 @media (hover: hover) {
@@ -192,8 +203,11 @@ onUnmounted(() => {
     box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
   }
 
-  .main-btn.is-expanded:hover {
-    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.5);
+  /* Меняем стили при ховере на контейнер (для десктопа) ИЛИ при классе (для клика) */
+  .quick-contact:hover .main-btn,
+  .quick-contact.is-expanded .main-btn {
+    /* Логика изменения цвета кнопки при открытии (опционально) */
+    /* Если нужно менять цвет только при клике, оставьте селектор .is-expanded */
   }
 }
 
@@ -201,9 +215,18 @@ onUnmounted(() => {
   transform: scale(0.95);
 }
 
-.main-btn.is-expanded {
+/* Состояние "Открыто" (Красная кнопка) - срабатывает при клике (класс) или ховере (медиа) */
+.quick-contact.is-expanded .main-btn {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* На десктопе тоже краснеем при ховере */
+@media (hover: hover) {
+  .quick-contact:hover .main-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+  }
 }
 
 .main-btn-content {
@@ -232,14 +255,32 @@ onUnmounted(() => {
   transform: rotate(-90deg) scale(0.5);
 }
 
-.main-btn.is-expanded .chat-icon {
+/* Анимация иконок: JS класс ИЛИ CSS ховер */
+.quick-contact.is-expanded .chat-icon,
+.quick-contact:hover .chat-icon {
   opacity: 0;
   transform: rotate(90deg) scale(0.5);
 }
 
-.main-btn.is-expanded .close-icon {
+/* Блокируем ховер-эффект иконок на таче через медиа-запрос (обратная логика не нужна, т.к. :hover не сработает) */
+@media (hover: none) {
+  .quick-contact:hover .chat-icon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.quick-contact.is-expanded .close-icon,
+.quick-contact:hover .close-icon {
   opacity: 1;
   transform: rotate(0deg) scale(1);
+}
+
+@media (hover: none) {
+  .quick-contact:hover .close-icon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
 }
 
 .pulse-ring {
@@ -251,32 +292,20 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.pulse-ring.delay {
-  animation-delay: 1s;
+/* Скрываем пульс при открытии */
+.quick-contact.is-expanded .pulse-ring,
+.quick-contact:hover .pulse-ring {
+  opacity: 0;
+  animation: none;
 }
 
-@keyframes popIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+.pulse-ring.delay {
+  animation-delay: 1s;
 }
 
 @keyframes pulse {
   0% { transform: scale(1); opacity: 0.8; }
   50%, 100% { transform: scale(1.5); opacity: 0; }
-}
-
-.contacts-enter-active {
-  transition: all 0.3s ease;
-}
-
-.contacts-leave-active {
-  transition: all 0.2s ease;
-}
-
-.contacts-enter-from,
-.contacts-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
 }
 
 @media (max-width: 1023px) {
@@ -329,18 +358,11 @@ onUnmounted(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .pulse-ring,
-  .contact-btn {
-    animation: none;
-  }
-
-  .contact-btn {
-    transform: scale(1);
-  }
-
-  .main-btn,
   .contact-btn,
+  .main-btn,
   .main-icon {
-    transition-duration: 0.01ms;
+    animation: none;
+    transition: none;
   }
 }
 </style>

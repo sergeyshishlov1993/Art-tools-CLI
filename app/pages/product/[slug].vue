@@ -381,7 +381,7 @@ Html, xml
               </div>
             </div>
 
-            <div v-if="validImages.length > 1" class="hidden lg:flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div v-if="validImages.length > 1" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <button
                 v-for="{ img, index } in validImages"
                 :key="img"
