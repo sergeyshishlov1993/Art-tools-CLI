@@ -51,7 +51,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <header class="bg-gray-900 h-[70px] sticky top-0 z-50">
+  <header class="bg-gray-900 h-[70px]">
     <div class="max-w-7xl mx-auto px-4 lg:px-8 h-full">
       <div class="flex items-center justify-between h-full">
 

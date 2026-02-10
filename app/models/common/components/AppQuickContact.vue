@@ -27,17 +27,25 @@ const contacts = [
     color: '#000000',
     hoverColor: '#333333'
   }
-]
+] as const
 
 const isExpanded = ref(false)
+const supportsHover = ref(false)
+
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
+onMounted(() => {
+  supportsHover.value = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+})
+
 function handleMouseEnter() {
+  if (!supportsHover.value) return
   if (hoverTimeout) clearTimeout(hoverTimeout)
   isExpanded.value = true
 }
 
 function handleMouseLeave() {
+  if (!supportsHover.value) return
   hoverTimeout = setTimeout(() => {
     isExpanded.value = false
   }, 300)
@@ -354,3 +362,4 @@ onUnmounted(() => {
   }
 }
 </style>
+

@@ -128,7 +128,7 @@ onUnmounted(() => {
     <Transition name="slide-down">
       <div
         v-if="isOpen"
-        class="fixed inset-x-0 top-0 bg-white z-50 max-h-[85vh] flex flex-col shadow-xl safe-area-top"
+        class="fixed inset-x-0 top-[120px] bg-white z-50 max-h-[85vh] flex flex-col shadow-xl safe-area-top"
       >
         <form
           class="flex items-center gap-3 p-4 border-b border-gray-200"

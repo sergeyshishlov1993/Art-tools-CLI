@@ -61,7 +61,9 @@ watch(() => props.product.image, () => {
 </script>
 
 <template>
-  <div class="group h-full flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-300">
+  <div
+    class="group h-full flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-300"
+  >
     <NuxtLink :to="product.to" class="block relative">
       <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
         <BBadge v-if="product.isPromo" variant="danger" size="sm">
@@ -104,17 +106,17 @@ watch(() => props.product.image, () => {
     </NuxtLink>
 
     <div class="flex flex-col flex-1 p-2.5 sm:p-3">
-      <p class="text-[10px] sm:text-xs text-gray-400 mb-1 truncate">
+      <p class="text-[10px] sm:text-xs text-gray-400 mb-1 truncate h-4 sm:h-5">
         {{ product.code }}
       </p>
 
-      <NuxtLink :to="product.to" class="block mb-2 flex-1">
-        <h3 class="text-xs sm:text-sm font-medium text-gray-800 hover:text-green-600 transition-colors line-clamp-2 leading-tight">
+      <NuxtLink :to="product.to" class="block mb-2">
+        <h3 class="text-xs sm:text-sm font-medium text-gray-800 hover:text-green-600 transition-colors line-clamp-2 leading-tight min-h-[2.5rem] sm:min-h-[2.75rem]">
           {{ product.name }}
         </h3>
       </NuxtLink>
 
-      <div class="flex flex-wrap items-baseline gap-1 sm:gap-2 mb-2 sm:mb-3">
+      <div class="flex flex-wrap items-baseline gap-1 sm:gap-2 mb-2 sm:mb-3 min-h-[1.75rem] sm:min-h-[2rem]">
         <span
           class="text-base sm:text-lg font-bold"
           :class="hasDiscount ? 'text-red-500' : 'text-gray-900'"
@@ -130,7 +132,7 @@ watch(() => props.product.image, () => {
       </div>
 
       <button
-        class="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+        class="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 h-9 sm:h-10 text-xs sm:text-sm mt-auto"
         @click="handleAddToCart"
       >
         <UIcon name="i-heroicons-shopping-cart" class="w-4 h-4 sm:w-5 sm:h-5" />
