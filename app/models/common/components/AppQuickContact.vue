@@ -132,17 +132,12 @@ onUnmounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Начальное состояние анимации */
   transform: scale(0) translateY(20px);
   opacity: 0;
 
-  /* Убираем animation, используем transition для управления через классы/ховер */
   transition-delay: 0s;
 }
 
-/* --- ЛОГИКА ОТОБРАЖЕНИЯ --- */
-
-/* 1. Мобилка / Клик (JS класс .is-expanded) */
 .quick-contact.is-expanded .contact-buttons {
   visibility: visible;
   pointer-events: auto;
