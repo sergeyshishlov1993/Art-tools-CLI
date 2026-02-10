@@ -58,7 +58,8 @@ onUnmounted(() => {
   <div
     class="quick-contact"
     :class="{ 'product-page': isProductPage }"
-    v-bind="!isMobile ? { onMouseenter: handleMouseEnter, onMouseleave: handleMouseLeave } : {}"
+    @mouseenter="isMobile ? undefined : handleMouseEnter()"
+    @mouseleave="isMobile ? undefined : handleMouseLeave()"
   >
     <Transition name="contacts">
       <div v-show="isExpanded" class="contact-buttons">
