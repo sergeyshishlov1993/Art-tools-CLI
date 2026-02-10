@@ -52,6 +52,7 @@ function handleMouseLeave() {
 }
 
 function toggle() {
+  if (supportsHover.value) return
   isExpanded.value = !isExpanded.value
 }
 

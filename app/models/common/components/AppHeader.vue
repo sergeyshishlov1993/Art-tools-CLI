@@ -177,7 +177,7 @@ watch(() => route.path, () => {
         </nav>
 
         <!-- Footer -->
-        <div class="p-4 border-t border-gray-800">
+        <div class="p-4 mb-10 border-t border-gray-800">
           <a
             :href="CONTACTS.phoneLink"
             class="flex items-center gap-3 text-gray-300 hover:text-white transition-colors"

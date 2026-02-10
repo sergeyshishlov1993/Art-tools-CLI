@@ -178,7 +178,7 @@ watch(() => route.path, () => {
     <Transition name="slide">
       <div
         v-if="isMobileMenuOpen"
-        class="fixed inset-y-0 left-0 w-80 max-w-full bg-white z-50 lg:hidden overflow-y-auto"
+        class="fixed inset-y-0 left-0 w-80 max-w-full bg-white z-50 lg:hidden overflow-y-auto  mt-[120px]"
       >
         <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
           <h3 class="font-bold text-gray-800">Каталог товарів</h3>

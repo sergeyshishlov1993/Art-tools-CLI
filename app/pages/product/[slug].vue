@@ -36,12 +36,19 @@ const failedImages = ref<Set<string>>(new Set())
 const loadedImages = ref<Set<string>>(new Set())
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
+const supportsHover = ref(false)
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+const isSwiping = ref(false)
 
+onMounted(() => {
+  supportsHover.value = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  categoryStore.fetchActive()
+})
 
 async function loadProduct(productSlug: string) {
   isLoading.value = true
   loadError.value = null
-
   selectedImageIndex.value = 0
   quantity.value = 1
   failedImages.value = new Set()
@@ -52,29 +59,21 @@ async function loadProduct(productSlug: string) {
     if (productStore.error) {
       loadError.value = productStore.error
     }
-  } catch (e) {
-    loadError.value = e instanceof Error ? e.message : 'Помилка завантаження товару'
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Помилка завантаження товару'
   } finally {
     isLoading.value = false
   }
 }
 
 watch(slug, (newSlug) => {
-  if (newSlug) {
-    loadProduct(newSlug)
-  }
+  if (newSlug) loadProduct(newSlug)
 }, { immediate: true })
-
-onMounted(() => {
-  categoryStore.fetchActive()
-})
 
 watch(
   () => productStore.currentProductCardData,
   (cardData) => {
-    if (cardData && import.meta.client) {
-      addViewed(cardData)
-    }
+    if (cardData && import.meta.client) addViewed(cardData)
   }
 )
 
@@ -83,11 +82,11 @@ const viewedProductCards = computed(() => {
   return getViewedExcept(productStore.currentProduct.product_id, 10)
 })
 
-const validImages = computed(() => {
-  return productStore.images
+const validImages = computed(() =>
+  productStore.images
     .map((img, index) => ({ img, index }))
     .filter(({ img }) => !failedImages.value.has(img))
-})
+)
 
 const currentImage = computed(() => {
   if (validImages.value.length === 0) return '/images/no-image.png'
@@ -97,9 +96,14 @@ const currentImage = computed(() => {
 
 const hasValidImages = computed(() => validImages.value.length > 0)
 
-const formattedPrice = computed(() => {
-  return new Intl.NumberFormat('uk-UA').format(productStore.finalPrice)
+const currentImagePosition = computed(() => {
+  const idx = validImages.value.findIndex(({ index }) => index === selectedImageIndex.value)
+  return idx >= 0 ? idx : 0
 })
+
+const formattedPrice = computed(() =>
+  new Intl.NumberFormat('uk-UA').format(productStore.finalPrice)
+)
 
 const formattedOldPrice = computed(() => {
   if (!productStore.oldPrice) return null
@@ -111,9 +115,9 @@ const formattedSavings = computed(() => {
   return new Intl.NumberFormat('uk-UA').format(productStore.oldPrice - productStore.finalPrice)
 })
 
-const showPromoTimer = computed(() => {
-  return productStore.isSale || productStore.discountPercent > 0
-})
+const showPromoTimer = computed(() =>
+  productStore.isSale || productStore.discountPercent > 0
+)
 
 const modalProduct = computed(() => {
   if (lastAddedProduct.value) return lastAddedProduct.value
@@ -141,16 +145,18 @@ function selectImage(index: number) {
 }
 
 function handleMouseEnter() {
-  if (hasValidImages.value) isZooming.value = true
+  if (!supportsHover.value || !hasValidImages.value) return
+  isZooming.value = true
 }
 
 function handleMouseLeave() {
+  if (!supportsHover.value) return
   isZooming.value = false
   zoomPosition.value = { x: 50, y: 50 }
 }
 
 function handleMouseMove(event: MouseEvent) {
-  if (!imageRef.value || !hasValidImages.value) return
+  if (!supportsHover.value || !imageRef.value || !hasValidImages.value) return
   const rect = imageRef.value.getBoundingClientRect()
   zoomPosition.value = {
     x: ((event.clientX - rect.left) / rect.width) * 100,
@@ -158,10 +164,45 @@ function handleMouseMove(event: MouseEvent) {
   }
 }
 
+function handleTouchStart(event: TouchEvent) {
+  if (validImages.value.length <= 1) return
+  const touch = event.touches[0]
+  if (!touch) return
+  touchStartX.value = touch.clientX
+  touchEndX.value = touch.clientX
+  isSwiping.value = true
+}
+
+function handleTouchMove(event: TouchEvent) {
+  if (!isSwiping.value) return
+  const touch = event.touches[0]
+  if (!touch) return
+  touchEndX.value = touch.clientX
+}
+
+function handleTouchEnd() {
+  if (!isSwiping.value) return
+  isSwiping.value = false
+  const diff = touchStartX.value - touchEndX.value
+  const threshold = 50
+
+  if (Math.abs(diff) < threshold) return
+
+  const currentPos = currentImagePosition.value
+
+  if (diff > 0 && currentPos < validImages.value.length - 1) {
+    const next = validImages.value[currentPos + 1]
+    if (next) selectedImageIndex.value = next.index
+  } else if (diff < 0 && currentPos > 0) {
+    const prev = validImages.value[currentPos - 1]
+    if (prev) selectedImageIndex.value = prev.index
+  }
+}
+
 function handleAddToCart() {
   const cartData = productStore.cartItemData
   if (cartData) {
-    for (let i = 0; i < quantity.value; i++) {
+    for (let idx = 0; idx < quantity.value; idx++) {
       cartStore.addToCart(cartData)
     }
     lastAddedProduct.value = { ...cartData, to: `/product/${productStore.currentProduct?.slug}` }
@@ -221,8 +262,6 @@ useSeoMeta({
   description: () =>
     productStore.description
       || `Купити ${productStore.currentProduct?.product_name} в інтернет-магазині Art Tools`,
-
-  // Open Graph
   ogType: 'website',
   ogTitle: () => productStore.currentProduct?.product_name || 'Товар',
   ogDescription: () =>
@@ -232,8 +271,6 @@ useSeoMeta({
     currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
   ogSiteName: 'Art Tools',
   ogLocale: 'uk_UA',
-
-  // Twitter Card
   twitterCard: 'summary_large_image',
   twitterTitle: () => productStore.currentProduct?.product_name || 'Товар',
   twitterDescription: () =>
@@ -242,11 +279,13 @@ useSeoMeta({
   twitterImage: () =>
     currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
 })
-
 </script>
+Часть 2 — template:
 
+
+Html, xml
 <template>
-  <div class="min-h-screen bg-gray-50 pb-24 lg:pb-0">
+  <div class="bg-gray-50 pb-10">
     <div class="max-w-7xl mx-auto px-4 py-6">
       <div v-if="isLoading" class="animate-pulse">
         <div class="h-4 bg-gray-200 rounded w-1/3 mb-6" />
@@ -281,15 +320,18 @@ useSeoMeta({
           </template>
         </nav>
 
-        <div class="grid lg:grid-cols-2 gap-8 mb-12">
+        <div class="grid lg:grid-cols-2 gap-8 mb-8">
           <div class="space-y-4 min-w-0 overflow-hidden">
             <div
               ref="imageRef"
-              class="relative aspect-square bg-white rounded-xl border border-gray-200 overflow-hidden"
-              :class="{ 'cursor-zoom-in': hasValidImages }"
+              class="relative aspect-square bg-white rounded-xl border border-gray-200 overflow-hidden select-none"
+              :class="{ 'cursor-zoom-in': hasValidImages && supportsHover }"
               @mouseenter="handleMouseEnter"
               @mouseleave="handleMouseLeave"
               @mousemove="handleMouseMove"
+              @touchstart.passive="handleTouchStart"
+              @touchmove.passive="handleTouchMove"
+              @touchend="handleTouchEnd"
             >
               <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
                 <span v-if="productStore.isSale" class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">АКЦІЯ</span>
@@ -302,7 +344,7 @@ useSeoMeta({
                 :key="currentImage"
                 :src="currentImage"
                 :alt="productStore.currentProduct.product_name"
-                class="w-full h-full object-contain p-4 transition-opacity duration-200"
+                class="w-full h-full object-contain p-4 transition-opacity duration-200 pointer-events-none"
                 :class="{ 'opacity-0': isZooming }"
                 @error="handleImageError(currentImage, selectedImageIndex)"
                 @load="handleImageLoad(currentImage)"
@@ -324,17 +366,26 @@ useSeoMeta({
                 }"
               />
 
-              <div v-if="!isZooming && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+              <div v-if="supportsHover && !isZooming && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                 <UIcon name="i-heroicons-magnifying-glass-plus" class="w-4 h-4" />
-                <span class="hidden sm:inline">Наведіть для збільшення</span>
+                <span>Наведіть для збільшення</span>
+              </div>
+
+              <div v-if="!supportsHover && validImages.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <span
+                  v-for="(_, dotIndex) in validImages"
+                  :key="dotIndex"
+                  class="w-2 h-2 rounded-full transition-colors"
+                  :class="currentImagePosition === dotIndex ? 'bg-green-500' : 'bg-gray-300'"
+                />
               </div>
             </div>
 
-            <div v-if="validImages.length > 1" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div v-if="validImages.length > 1" class="hidden lg:flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <button
                 v-for="{ img, index } in validImages"
                 :key="img"
-                class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg border-2 overflow-hidden transition-all bg-white"
+                class="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 overflow-hidden transition-all bg-white"
                 :class="selectedImageIndex === index ? 'border-green-500 ring-2 ring-green-500/30' : 'border-gray-200 hover:border-gray-300'"
                 @click="selectImage(index)"
               >
@@ -425,7 +476,7 @@ useSeoMeta({
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-12">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
           <div class="flex border-b border-gray-200 relative">
             <div class="absolute bottom-0 h-0.5 bg-green-500 transition-all duration-300" :style="{ left: activeTab === 'params' ? '0%' : '50%', width: '50%' }" />
             <button class="flex-1 py-4 px-4 sm:px-6 text-center font-medium transition-colors relative z-10 text-sm sm:text-base" :class="activeTab === 'params' ? 'text-green-600' : 'text-gray-600 hover:text-gray-800'" @click="activeTab = 'params'">
@@ -458,7 +509,7 @@ useSeoMeta({
           v-if="productStore.relatedProductCards.length > 0"
           title="Схожі товари"
           :products="productStore.relatedProductCards"
-          class="mb-12"
+          class="mb-8"
           @add-to-cart="handleRelatedAddToCart"
           @quick-buy="handleRelatedQuickBuy"
         />
@@ -468,7 +519,6 @@ useSeoMeta({
             v-if="viewedProductCards.length > 0"
             title="Ви переглядали"
             :products="viewedProductCards"
-            class="mb-12"
             @add-to-cart="handleViewedAddToCart"
             @quick-buy="handleViewedQuickBuy"
           />
@@ -507,16 +557,13 @@ useSeoMeta({
       <div class="safe-area-bottom" />
     </div>
 
-    <!-- Modals -->
     <CartModal v-model="isCartModalOpen" :product="modalProduct" @quick-buy="() => isOneClickModalOpen = true" />
     <OneClickModal v-model="isOneClickModalOpen" :product="modalProduct" />
   </div>
 </template>
 
 <style scoped>
-.cursor-zoom-in { cursor: zoom-in; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .safe-area-bottom { height: env(safe-area-inset-bottom, 0); background: white; }
-@media (max-width: 1023px) { .pb-24 { padding-bottom: 6rem; } }
 </style>

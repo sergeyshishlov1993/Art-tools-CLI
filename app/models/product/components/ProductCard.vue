@@ -89,16 +89,16 @@ watch(() => props.product.image, () => {
         <UIcon name="i-heroicons-bolt" class="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
 
-      <div class="aspect-square bg-gray-50 flex items-center justify-center p-3 sm:p-4">
+      <div class="relative w-full pt-[100%] bg-gray-50">
         <img
           v-if="hasValidImage"
           :src="product.image"
           :alt="product.name"
-          class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          class="absolute inset-0 w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           @error="handleImageError"
         >
-        <div v-else class="flex flex-col items-center justify-center text-gray-300">
+        <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-gray-300"">
           <UIcon name="i-heroicons-photo" class="w-12 h-12 sm:w-16 sm:h-16 mb-1" />
           <span class="text-[10px] sm:text-xs">Немає фото</span>
         </div>
