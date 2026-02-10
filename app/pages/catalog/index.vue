@@ -373,7 +373,7 @@ useHead({
       </div>
 
       <template v-if="hasQueryFilters">
-        <div class="lg:hidden mb-6">
+        <div class="lg:hidden sticky top-[70px] z-30 bg-gray-50 pb-3 pt-1 -mx-4 px-4">
           <div class="flex items-center gap-3">
             <BBtn
               variant="secondary"

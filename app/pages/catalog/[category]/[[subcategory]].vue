@@ -293,7 +293,7 @@ useSeoMeta({
         </p>
       </div>
 
-      <div class="xl:hidden mb-6">
+      <div class="xl:hidden sticky top-[120px] z-30 bg-gray-50 pb-3 pt-1 -mx-4 px-4">
         <div class="flex items-center gap-3">
           <BBtn
             variant="secondary"

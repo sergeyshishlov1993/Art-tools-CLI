@@ -34,8 +34,10 @@ const isTouchDevice = ref(false)
 
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
-function handleTouchStart() {
+function handleTouchStart(event: TouchEvent) {
+  event.preventDefault()
   isTouchDevice.value = true
+  isExpanded.value = !isExpanded.value
 }
 
 function handleMouseEnter() {
@@ -52,7 +54,7 @@ function handleMouseLeave() {
 }
 
 function handleClick() {
-  if (!isTouchDevice.value) return
+  if (isTouchDevice.value) return
   isExpanded.value = !isExpanded.value
 }
 
@@ -99,7 +101,7 @@ onUnmounted(() => {
       class="main-btn"
       :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
-      @touchstart.passive="handleTouchStart"
+      @touchstart.prevent="handleTouchStart"
       @click="handleClick"
     >
       <span class="main-btn-content">
@@ -144,6 +146,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .contact-buttons {
@@ -165,6 +168,7 @@ onUnmounted(() => {
   transform: scale(0);
   animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: var(--delay);
+  touch-action: manipulation;
 }
 
 .contact-btn:hover {
@@ -194,6 +198,7 @@ onUnmounted(() => {
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
 }
 
 .main-btn:hover {
