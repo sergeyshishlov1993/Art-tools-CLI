@@ -22,15 +22,7 @@ export default defineNuxtConfig({
   ],
 
   icon: {
-    serverBundle: {
-      collections: ['heroicons'],
-    },
-  },
-
-  ui: {
-    icons: {
-      include: ['heroicons'],
-    },
+    serverBundle: 'local',
   },
 
   // @ts-expect-error nuxt-gtag types not compatible with Nuxt 4 yet
