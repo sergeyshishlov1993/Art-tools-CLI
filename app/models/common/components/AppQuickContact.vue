@@ -49,17 +49,29 @@ function handleToggle() {
   isExpanded.value = !isExpanded.value
 }
 
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.quick-contact')) {
+    isExpanded.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
 onUnmounted(() => {
   if (hoverTimeout) clearTimeout(hoverTimeout)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
 <template>
+  <!-- Мобилка — только click -->
   <div
+    v-if="isMobile"
     class="quick-contact"
     :class="{ 'product-page': isProductPage }"
-    @mouseenter="isMobile ? undefined : handleMouseEnter()"
-    @mouseleave="isMobile ? undefined : handleMouseLeave()"
   >
     <Transition name="contacts">
       <div v-show="isExpanded" class="contact-buttons">
@@ -77,13 +89,7 @@ onUnmounted(() => {
           }"
           :title="contact.name"
         >
-          <img
-            :src="contact.icon"
-            :alt="contact.name"
-            class="contact-icon"
-            width="24"
-            height="24"
-          >
+          <img :src="contact.icon" :alt="contact.name" class="contact-icon" width="24" height="24">
         </a>
       </div>
     </Transition>
@@ -92,7 +98,56 @@ onUnmounted(() => {
       class="main-btn"
       :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
-      @click="handleToggle"
+      @click.stop="handleToggle"
+    >
+      <span class="main-btn-content">
+        <svg class="main-icon chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+        <svg class="main-icon close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </span>
+      <span v-if="!isExpanded" class="pulse-ring" />
+      <span v-if="!isExpanded" class="pulse-ring delay" />
+    </button>
+  </div>
+
+  <!-- Десктоп — hover + click -->
+  <div
+    v-else
+    class="quick-contact"
+    :class="{ 'product-page': isProductPage }"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
+    <Transition name="contacts">
+      <div v-show="isExpanded" class="contact-buttons">
+        <a
+          v-for="(contact, index) in contacts"
+          :key="contact.name"
+          :href="contact.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="contact-btn"
+          :style="{
+            '--delay': `${index * 0.05}s`,
+            '--color': contact.color,
+            '--hover-color': contact.hoverColor
+          }"
+          :title="contact.name"
+        >
+          <img :src="contact.icon" :alt="contact.name" class="contact-icon" width="24" height="24">
+        </a>
+      </div>
+    </Transition>
+
+    <button
+      class="main-btn"
+      :class="{ 'is-expanded': isExpanded }"
+      aria-label="Швидкий зв'язок"
+      @click.stop="handleToggle"
     >
       <span class="main-btn-content">
         <svg class="main-icon chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
