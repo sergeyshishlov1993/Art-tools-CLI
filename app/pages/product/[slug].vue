@@ -218,10 +218,31 @@ onUnmounted(() => {
 
 useSeoMeta({
   title: () => productStore.currentProduct?.product_name || 'Товар',
-  description: () => productStore.description || `Купити ${productStore.currentProduct?.product_name}`,
-  ogTitle: () => productStore.currentProduct?.product_name,
-  ogImage: () => currentImage.value !== '/images/no-image.png' ? currentImage.value : undefined
+  description: () =>
+    productStore.description
+      || `Купити ${productStore.currentProduct?.product_name} в інтернет-магазині Art Tools`,
+
+  // Open Graph
+  ogType: 'website',
+  ogTitle: () => productStore.currentProduct?.product_name || 'Товар',
+  ogDescription: () =>
+    productStore.description
+      || `Купити ${productStore.currentProduct?.product_name} ✓ В наявності ✓ Доставка по Україні`,
+  ogImage: () =>
+    currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
+  ogSiteName: 'Art Tools',
+  ogLocale: 'uk_UA',
+
+  // Twitter Card
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => productStore.currentProduct?.product_name || 'Товар',
+  twitterDescription: () =>
+    productStore.description
+      || `Купити ${productStore.currentProduct?.product_name} в Art Tools`,
+  twitterImage: () =>
+    currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
 })
+
 </script>
 
 <template>
