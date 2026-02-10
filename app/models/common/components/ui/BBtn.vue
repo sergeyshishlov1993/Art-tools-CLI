@@ -67,7 +67,7 @@ const iconSizes = computed(() => ({
 
     <UIcon v-else-if="icon" :name="icon" :class="iconSizes[size]" />
 
-    <span v-if="$slots.default">
+    <span v-if="$slots.default" class="flex gap-1">
       <slot />
     </span>
 

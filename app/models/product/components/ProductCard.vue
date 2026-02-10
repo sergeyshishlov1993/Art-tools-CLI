@@ -111,7 +111,7 @@ watch(() => props.product.image, () => {
       </p>
 
       <NuxtLink :to="product.to" class="block mb-2">
-        <h3 class="text-xs sm:text-sm font-medium text-gray-800 hover:text-green-600 transition-colors line-clamp-2 leading-tight min-h-[2.5rem] sm:min-h-[2.75rem]">
+        <h3 class="text-xs sm:text-sm font-medium text-gray-800 hover:text-green-600 transition-colors line-clamp-3 leading-snug min-h-[3.25rem] sm:min-h-[3.5rem]">
           {{ product.name }}
         </h3>
       </NuxtLink>

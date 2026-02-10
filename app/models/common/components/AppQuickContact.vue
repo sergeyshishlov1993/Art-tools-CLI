@@ -41,7 +41,7 @@ onMounted(() => {
 function handleMouseEnter() {
   if (!supportsHover.value) return
   if (hoverTimeout) clearTimeout(hoverTimeout)
-  isExpanded.value = true
+  if (!isExpanded.value) isExpanded.value = true
 }
 
 function handleMouseLeave() {
@@ -52,7 +52,6 @@ function handleMouseLeave() {
 }
 
 function toggle() {
-  if (supportsHover.value) return
   isExpanded.value = !isExpanded.value
 }
 
@@ -65,8 +64,6 @@ onUnmounted(() => {
   <div
     class="quick-contact"
     :class="{ 'product-page': isProductPage }"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
   >
     <Transition name="contacts">
       <div v-show="isExpanded" class="contact-buttons">
@@ -100,6 +97,8 @@ onUnmounted(() => {
       :class="{ 'is-expanded': isExpanded }"
       aria-label="Швидкий зв'язок"
       @click="toggle"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave"
     >
       <span class="main-btn-content">
         <svg
@@ -363,4 +362,3 @@ onUnmounted(() => {
   }
 }
 </style>
-
