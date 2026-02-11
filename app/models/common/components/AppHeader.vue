@@ -90,7 +90,7 @@ watch(() => route.path, () => {
             :href="CONTACTS.phoneLink"
             class="hidden md:flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
           >
-            <UIcon name="i-heroicons-phone" class="w-4 h-4 text-green-500" />
+            <UIcon name="heroicons-phone" class="w-4 h-4 text-green-500" />
             <span class="text-sm font-medium">{{ CONTACTS.phone }}</span>
           </a>
 
@@ -98,7 +98,7 @@ watch(() => route.path, () => {
             :to="ROUTES.CART"
             class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors relative"
           >
-            <UIcon name="i-heroicons-shopping-cart" class="w-5 h-5" />
+            <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
             <span
               v-if="cartStore.totalQuantity > 0"
               class="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center bg-green-500 text-white text-xs font-bold rounded-full px-1"
@@ -112,7 +112,7 @@ watch(() => route.path, () => {
             @click="toggleMobileMenu"
           >
             <UIcon
-              :name="isMobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
+              :name="isMobileMenuOpen ? 'heroicons-x-mark' : 'heroicons-bars-3'"
               class="w-6 h-6"
             />
           </button>
@@ -143,7 +143,7 @@ watch(() => route.path, () => {
             class="p-2 text-gray-400 hover:text-white transition-colors"
             @click="closeMobileMenu"
           >
-            <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+            <UIcon name="heroicons-x-mark" class="w-6 h-6" />
           </button>
         </div>
 
@@ -182,7 +182,7 @@ watch(() => route.path, () => {
             :href="CONTACTS.phoneLink"
             class="flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
           >
-            <UIcon name="i-heroicons-phone" class="w-5 h-5 text-green-500" />
+            <UIcon name="heroicons-phone" class="w-5 h-5 text-green-500" />
             <span class="font-medium">{{ CONTACTS.phone }}</span>
           </a>
         </div>

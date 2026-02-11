@@ -167,7 +167,7 @@ defineExpose({
   <div class="relative">
     <div class="relative">
       <UIcon
-        name="i-heroicons-magnifying-glass"
+        name="heroicons-magnifying-glass"
         class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
       />
       <input
@@ -184,7 +184,7 @@ defineExpose({
         v-if="loading"
         class="absolute right-3 top-1/2 -translate-y-1/2"
       >
-        <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 text-gray-400 animate-spin" />
+        <UIcon name="heroicons-arrow-path" class="w-4 h-4 text-gray-400 animate-spin" />
       </div>
       <button
         v-else-if="query"
@@ -192,7 +192,7 @@ defineExpose({
         class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
         @click="clearSearch(); handleClose()"
       >
-        <UIcon name="i-heroicons-x-mark" class="w-4 h-4 text-gray-400" />
+        <UIcon name="heroicons-x-mark" class="w-4 h-4 text-gray-400" />
       </button>
     </div>
 
@@ -240,13 +240,13 @@ defineExpose({
               @click="handleViewAll"
             >
               Показати всі результати ({{ totalResults }})
-              <UIcon name="i-heroicons-arrow-right" class="w-4 h-4" />
+              <UIcon name="heroicons-arrow-right" class="w-4 h-4" />
             </button>
           </div>
         </template>
 
         <div v-else-if="query.length >= 2" class="p-6 text-center">
-          <UIcon name="i-heroicons-face-frown" class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <UIcon name="heroicons-face-frown" class="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p class="text-sm text-gray-500">
             За запитом "{{ query }}" нічого не знайдено
           </p>

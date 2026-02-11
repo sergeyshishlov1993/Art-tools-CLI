@@ -80,7 +80,7 @@ onMounted(() => {
     />
 
     <div v-if="loading" class="absolute right-3 top-[38px] pointer-events-none">
-      <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin text-green-500" />
+      <UIcon name="heroicons-arrow-path" class="w-5 h-5 animate-spin text-green-500" />
     </div>
 
     <Transition name="fade">

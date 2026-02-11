@@ -35,12 +35,12 @@ const categoryLinks = computed(() => {
               :href="CONTACTS.phoneLink"
               class="flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
             >
-              <UIcon name="i-heroicons-phone" class="w-4 h-4 text-green-500" />
+              <UIcon name="heroicons-phone" class="w-4 h-4 text-green-500" />
               <span class="font-medium">{{ CONTACTS.phone }}</span>
             </a>
 
             <div class="flex items-center gap-3 text-gray-500">
-              <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+              <UIcon name="heroicons-clock" class="w-4 h-4" />
               <span class="text-sm">{{ CONTACTS.schedule.weekdays }}</span>
             </div>
           </div>
@@ -81,7 +81,7 @@ const categoryLinks = computed(() => {
                 class="text-green-500 hover:text-green-400 text-sm font-medium inline-flex items-center gap-1"
               >
                 Весь каталог
-                <UIcon name="i-heroicons-arrow-right" class="w-3 h-3" />
+                <UIcon name="heroicons-arrow-right" class="w-3 h-3" />
               </NuxtLink>
             </li>
           </ul>
@@ -114,7 +114,7 @@ const categoryLinks = computed(() => {
             class="text-green-500 hover:text-green-400 text-sm font-medium inline-flex items-center gap-1"
           >
             Всі контакти
-            <UIcon name="i-heroicons-arrow-right" class="w-3 h-3" />
+            <UIcon name="heroicons-arrow-right" class="w-3 h-3" />
           </NuxtLink>
         </div>
       </div>

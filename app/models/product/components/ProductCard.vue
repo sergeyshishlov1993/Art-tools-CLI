@@ -86,7 +86,7 @@ watch(() => props.product.image, () => {
         title="Купити в 1 клік"
         @click="handleQuickBuy"
       >
-        <UIcon name="i-heroicons-bolt" class="w-4 h-4 sm:w-5 sm:h-5" />
+        <UIcon name="heroicons-bolt" class="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
 
       <div class="relative w-full pt-[100%] bg-gray-50">
@@ -99,7 +99,7 @@ watch(() => props.product.image, () => {
           @error="handleImageError"
         >
         <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-gray-300"">
-          <UIcon name="i-heroicons-photo" class="w-12 h-12 sm:w-16 sm:h-16 mb-1" />
+          <UIcon name="heroicons-photo" class="w-12 h-12 sm:w-16 sm:h-16 mb-1" />
           <span class="text-[10px] sm:text-xs">Немає фото</span>
         </div>
       </div>
@@ -135,7 +135,7 @@ watch(() => props.product.image, () => {
         class="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 h-9 sm:h-10 text-xs sm:text-sm mt-auto"
         @click="handleAddToCart"
       >
-        <UIcon name="i-heroicons-shopping-cart" class="w-4 h-4 sm:w-5 sm:h-5" />
+        <UIcon name="heroicons-shopping-cart" class="w-4 h-4 sm:w-5 sm:h-5" />
         <span>В кошик</span>
       </button>
     </div>

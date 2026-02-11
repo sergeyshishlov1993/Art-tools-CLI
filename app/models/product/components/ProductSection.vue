@@ -63,14 +63,14 @@ onUnmounted(() => {
             class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-green-500 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             @click="scrollTo('left')"
           >
-            <UIcon name="i-heroicons-chevron-left" class="w-5 h-5" />
+            <UIcon name="heroicons-chevron-left" class="w-5 h-5" />
           </button>
           <button
             :disabled="!canScrollRight"
             class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-green-500 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             @click="scrollTo('right')"
           >
-            <UIcon name="i-heroicons-chevron-right" class="w-5 h-5" />
+            <UIcon name="heroicons-chevron-right" class="w-5 h-5" />
           </button>
         </div>
 
@@ -80,7 +80,7 @@ onUnmounted(() => {
           class="text-green-600 hover:text-green-700 text-sm font-medium flex items-center gap-1"
         >
           Дивитись все
-          <UIcon name="i-heroicons-arrow-right" class="w-4 h-4" />
+          <UIcon name="heroicons-arrow-right" class="w-4 h-4" />
         </NuxtLink>
       </div>
     </div>

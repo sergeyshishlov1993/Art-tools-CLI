@@ -63,7 +63,7 @@ const discount = computed(() => {
     </div>
 
     <UIcon
-      name="i-heroicons-chevron-right"
+      name="heroicons-chevron-right"
       class="w-4 h-4 text-gray-400 group-hover:text-green-500 transition-colors flex-shrink-0"
     />
   </NuxtLink>

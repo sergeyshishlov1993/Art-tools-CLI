@@ -30,51 +30,51 @@ export const NAV_ITEMS = [
   {
     label: 'АКЦІЇ',
     to: '/catalog?sale=true',
-    icon: 'i-heroicons-fire',
+    icon: 'heroicons-fire',
     highlight: true
   },
   {
     label: 'ХІТ ПРОДАЖУ',
     to: '/catalog?bestseller=true',
-    icon: 'i-heroicons-star',
+    icon: 'heroicons-star',
     highlight: false
   },
   {
     label: 'КАТАЛОГ',
     to: '/catalog',
-    icon: 'i-heroicons-squares-2x2',
+    icon: 'heroicons-squares-2x2',
     highlight: false
   },
 ] as const
 
 // Мобільна навігація
 export const MOBILE_NAV_ITEMS = [
-  { label: 'Головна', to: '/', icon: 'i-heroicons-home', highlight: false },
-  { label: 'АКЦІЇ', to: '/catalog?sale=true', icon: 'i-heroicons-fire', highlight: true },
-  { label: 'ХІТ ПРОДАЖУ', to: '/catalog?bestseller=true', icon: 'i-heroicons-star', highlight: false },
-  { label: 'КАТАЛОГ', to: '/catalog', icon: 'i-heroicons-squares-2x2', highlight: false },
-  { label: 'КОШИК', to: '/cart', icon: 'i-heroicons-shopping-cart', highlight: false },
+  { label: 'Головна', to: '/', icon: 'heroicons-home', highlight: false },
+  { label: 'АКЦІЇ', to: '/catalog?sale=true', icon: 'heroicons-fire', highlight: true },
+  { label: 'ХІТ ПРОДАЖУ', to: '/catalog?bestseller=true', icon: 'heroicons-star', highlight: false },
+  { label: 'КАТАЛОГ', to: '/catalog', icon: 'heroicons-squares-2x2', highlight: false },
+  { label: 'КОШИК', to: '/cart', icon: 'heroicons-shopping-cart', highlight: false },
 ] as const
 
 // Швидкі посилання для сторінки контактів
 export const QUICK_LINKS = [
   {
     name: 'Каталог',
-    icon: 'i-heroicons-squares-2x2',
+    icon: 'heroicons-squares-2x2',
     to: '/catalog',
     color: 'bg-green-50 hover:bg-green-100 border-green-200 hover:border-green-300',
     iconBg: 'bg-green-500',
   },
   {
     name: 'Акції',
-    icon: 'i-heroicons-fire',
+    icon: 'heroicons-fire',
     to: '/catalog?sale=true',
     color: 'bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300',
     iconBg: 'bg-red-500',
   },
   {
     name: 'Хіти продажів',
-    icon: 'i-heroicons-star',
+    icon: 'heroicons-star',
     to: '/catalog?bestseller=true',
     color: 'bg-orange-50 hover:bg-orange-100 border-orange-200 hover:border-orange-300',
     iconBg: 'bg-orange-500',

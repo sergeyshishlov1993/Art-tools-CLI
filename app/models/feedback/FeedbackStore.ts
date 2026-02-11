@@ -24,7 +24,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
         title: 'Дякуємо за заявку!',
         description: 'Ми зателефонуємо вам найближчим часом',
         color: 'success',
-        icon: 'i-heroicons-check-circle'
+        icon: 'heroicons-check-circle'
       })
 
       return true
@@ -35,7 +35,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
         title: 'Помилка',
         description: 'Не вдалося надіслати заявку. Спробуйте ще раз.',
         color: 'error',
-        icon: 'i-heroicons-x-circle'
+        icon: 'heroicons-x-circle'
       })
 
       return false

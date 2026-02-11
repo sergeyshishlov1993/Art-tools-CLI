@@ -157,7 +157,7 @@ useHead({
 
       <div v-else class="bg-white rounded-xl border border-gray-200 p-12 text-center max-w-2xl mx-auto">
         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <UIcon name="i-heroicons-shopping-cart" class="w-10 h-10 text-gray-400" />
+          <UIcon name="heroicons-shopping-cart" class="w-10 h-10 text-gray-400" />
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2">Кошик порожній</h2>
         <p class="text-gray-500 mb-8">Але це ніколи не пізно виправити :)</p>

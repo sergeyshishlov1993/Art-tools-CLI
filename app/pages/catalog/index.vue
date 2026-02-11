@@ -290,7 +290,7 @@ useHead({ title: pageTitle })
         <NuxtLink :to="ROUTES.HOME" class="text-gray-500 hover:text-green-600 transition-colors">
           Головна
         </NuxtLink>
-        <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+        <UIcon name="heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
         <NuxtLink
           v-if="hasQueryFilters"
           :to="ROUTES.CATALOG"
@@ -298,7 +298,7 @@ useHead({ title: pageTitle })
         >
           Каталог
         </NuxtLink>
-        <UIcon v-if="hasQueryFilters" name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+        <UIcon v-if="hasQueryFilters" name="heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
         <span class="text-gray-800">{{ pageTitle }}</span>
       </nav>
 
@@ -316,14 +316,14 @@ useHead({ title: pageTitle })
             to="/catalog?sale=true"
             class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full text-sm font-medium hover:bg-red-100 transition-colors"
           >
-            <UIcon name="i-heroicons-fire" class="w-4 h-4" />
+            <UIcon name="heroicons-fire" class="w-4 h-4" />
             Акції
           </NuxtLink>
           <NuxtLink
             to="/catalog?bestseller=true"
             class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-sm font-medium hover:bg-green-100 transition-colors"
           >
-            <UIcon name="i-heroicons-star" class="w-4 h-4" />
+            <UIcon name="heroicons-star" class="w-4 h-4" />
             Хіти
           </NuxtLink>
         </div>
@@ -332,7 +332,7 @@ useHead({ title: pageTitle })
       <template v-if="hasQueryFilters">
         <div class="xl:hidden sticky top-[120px] z-30 bg-gray-50 pb-3 pt-1 -mx-4 px-4">
           <div class="flex items-center gap-3">
-            <BBtn variant="secondary" icon="i-heroicons-adjustments-horizontal" @click="isFilterOpen = true">
+            <BBtn variant="secondary" icon="heroicons-adjustments-horizontal" @click="isFilterOpen = true">
               Фільтри
               <span
                 v-if="filterState.hasActiveFilters.value"
@@ -439,7 +439,7 @@ useHead({ title: pageTitle })
                   />
                 </div>
                 <div v-else class="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                  <UIcon name="i-heroicons-face-frown" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <UIcon name="heroicons-face-frown" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 class="text-lg font-medium text-gray-800 mb-2">Товарів не знайдено</h3>
                   <p class="text-gray-500 mb-4">Спробуйте змінити параметри фільтрів</p>
                   <BBtn variant="primary" @click="clearFilters">Скинути фільтри</BBtn>
@@ -454,14 +454,14 @@ useHead({ title: pageTitle })
               </div>
               <div v-else-if="hasMore" class="py-8 text-center">
                 <button class="text-green-600 hover:text-green-700 font-medium flex items-center gap-2 mx-auto transition-colors" @click="loadMore">
-                  <UIcon name="i-heroicons-arrow-down" class="w-5 h-5" />
+                  <UIcon name="heroicons-arrow-down" class="w-5 h-5" />
                   Завантажити ще
                 </button>
                 <p class="text-sm text-gray-400 mt-2">або прокрутіть вниз</p>
               </div>
               <div v-else class="py-8 text-center">
                 <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm">
-                  <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                  <UIcon name="heroicons-check-circle" class="w-5 h-5 text-green-500" />
                   Всі товари завантажено
                 </div>
               </div>
@@ -544,10 +544,10 @@ useHead({ title: pageTitle })
         <section class="mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <div
             v-for="(item, index) in [
-              { icon: 'i-heroicons-truck', title: 'Безкоштовна доставка', desc: 'При замовленні від 2000 грн' },
-              { icon: 'i-heroicons-shield-check', title: 'Гарантія якості', desc: 'Офіційна гарантія від виробника' },
-              { icon: 'i-heroicons-arrow-path', title: 'Повернення 14 днів', desc: 'Легке повернення товару' },
-              { icon: 'i-heroicons-credit-card', title: 'Зручна оплата', desc: 'Карткою або при отриманні' }
+              { icon: 'heroicons-truck', title: 'Безкоштовна доставка', desc: 'При замовленні від 2000 грн' },
+              { icon: 'heroicons-shield-check', title: 'Гарантія якості', desc: 'Офіційна гарантія від виробника' },
+              { icon: 'heroicons-arrow-path', title: 'Повернення 14 днів', desc: 'Легке повернення товару' },
+              { icon: 'heroicons-credit-card', title: 'Зручна оплата', desc: 'Карткою або при отриманні' }
             ]"
             :key="index"
             class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 flex items-start gap-4 hover:border-green-200 hover:shadow-md transition-all duration-300"
@@ -575,7 +575,7 @@ useHead({ title: pageTitle })
             <div class="flex items-center gap-2">
               <button v-if="filterState.hasActiveFilters.value" class="text-sm text-red-500 hover:text-red-600 transition-colors" @click="clearFilters">Очистити</button>
               <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" @click="isFilterOpen = false">
-                <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+                <UIcon name="heroicons-x-mark" class="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -637,7 +637,7 @@ useHead({ title: pageTitle })
           class="fixed bottom-6 right-6 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 hover:border-green-500 transition-all z-30"
           @click="scrollToTop"
         >
-          <UIcon name="i-heroicons-chevron-up" class="w-6 h-6 text-gray-600" />
+          <UIcon name="heroicons-chevron-up" class="w-6 h-6 text-gray-600" />
         </button>
       </Transition>
     </ClientOnly>

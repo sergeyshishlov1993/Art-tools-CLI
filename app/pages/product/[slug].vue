@@ -301,7 +301,7 @@ Html, xml
       </div>
 
       <div v-else-if="loadError" class="bg-white rounded-xl p-12 text-center">
-        <UIcon name="i-heroicons-exclamation-triangle" class="w-16 h-16 text-red-400 mx-auto mb-4" />
+        <UIcon name="heroicons-exclamation-triangle" class="w-16 h-16 text-red-400 mx-auto mb-4" />
         <h2 class="text-xl font-bold text-gray-800 mb-2">Товар не знайдено</h2>
         <p class="text-gray-500 mb-4">{{ loadError }}</p>
         <NuxtLink to="/" class="text-green-600 hover:text-green-700 font-medium">
@@ -316,7 +316,7 @@ Html, xml
               {{ crumb.label }}
             </NuxtLink>
             <span v-else class="text-gray-800 line-clamp-1">{{ crumb.label }}</span>
-            <UIcon v-if="index < productStore.breadcrumbs.length - 1" name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <UIcon v-if="index < productStore.breadcrumbs.length - 1" name="heroicons-chevron-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
           </template>
         </nav>
 
@@ -351,7 +351,7 @@ Html, xml
               >
 
               <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                <UIcon name="i-heroicons-photo" class="w-20 h-20 mb-2" />
+                <UIcon name="heroicons-photo" class="w-20 h-20 mb-2" />
                 <span class="text-sm">Зображення недоступне</span>
               </div>
 
@@ -367,7 +367,7 @@ Html, xml
               />
 
               <div v-if="supportsHover && !isZooming && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                <UIcon name="i-heroicons-magnifying-glass-plus" class="w-4 h-4" />
+                <UIcon name="heroicons-magnifying-glass-plus" class="w-4 h-4" />
                 <span>Наведіть для збільшення</span>
               </div>
 
@@ -405,11 +405,11 @@ Html, xml
 
             <div class="flex items-center gap-2">
               <span v-if="productStore.isAvailable" class="flex items-center gap-1 text-green-600">
-                <UIcon name="i-heroicons-check-circle" class="w-5 h-5" />
+                <UIcon name="heroicons-check-circle" class="w-5 h-5" />
                 <span class="font-medium">В наявності</span>
               </span>
               <span v-else class="flex items-center gap-1 text-red-500">
-                <UIcon name="i-heroicons-x-circle" class="w-5 h-5" />
+                <UIcon name="heroicons-x-circle" class="w-5 h-5" />
                 <span class="font-medium">Немає в наявності</span>
               </span>
             </div>
@@ -431,20 +431,20 @@ Html, xml
                 <span class="text-sm text-gray-600">Кількість:</span>
                 <div class="flex items-center border border-gray-300 rounded-lg">
                   <button class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50" :disabled="quantity <= 1" @click="decrementQuantity">
-                    <UIcon name="i-heroicons-minus" class="w-4 h-4" />
+                    <UIcon name="heroicons-minus" class="w-4 h-4" />
                   </button>
                   <span class="w-12 text-center font-medium">{{ quantity }}</span>
                   <button class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100" @click="incrementQuantity">
-                    <UIcon name="i-heroicons-plus" class="w-4 h-4" />
+                    <UIcon name="heroicons-plus" class="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               <div class="flex gap-3">
-                <BBtn variant="primary" size="lg" class="flex-1" icon="i-heroicons-shopping-cart" :disabled="!productStore.isAvailable" @click="handleAddToCart">
+                <BBtn variant="primary" size="lg" class="flex-1" icon="heroicons-shopping-cart" :disabled="!productStore.isAvailable" @click="handleAddToCart">
                   Додати в кошик
                 </BBtn>
-                <BBtn variant="secondary" size="lg" class="flex-1" icon="i-heroicons-bolt" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
+                <BBtn variant="secondary" size="lg" class="flex-1" icon="heroicons-bolt" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
                   Купити в 1 клік
                 </BBtn>
               </div>
@@ -452,21 +452,21 @@ Html, xml
 
             <div class="border-t border-gray-200 pt-6 space-y-3">
               <div class="flex items-start gap-3">
-                <UIcon name="i-heroicons-truck" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <UIcon name="heroicons-truck" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p class="font-medium text-gray-800">Доставка</p>
                   <p class="text-sm text-gray-500">Нова Пошта, кур'єр по Україні</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <UIcon name="i-heroicons-credit-card" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <UIcon name="heroicons-credit-card" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p class="font-medium text-gray-800">Оплата</p>
                   <p class="text-sm text-gray-500">Накладений платіж, карткою онлайн</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <UIcon name="heroicons-shield-check" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p class="font-medium text-gray-800">Гарантія</p>
                   <p class="text-sm text-gray-500">Офіційна гарантія від виробника</p>
@@ -537,7 +537,7 @@ Html, xml
             <div v-if="formattedSavings" class="text-green-600 text-xs font-medium">💰 Економія: {{ formattedSavings }} ₴</div>
           </div>
           <div v-if="productStore.isAvailable" class="text-sm text-green-600 font-medium flex items-center gap-1">
-            <UIcon name="i-heroicons-check-circle-solid" class="w-4 h-4" />
+            <UIcon name="heroicons-check-circle-solid" class="w-4 h-4" />
             В наявності
           </div>
           <div v-else class="text-sm text-red-500 font-medium">Немає в наявності</div>
@@ -545,11 +545,11 @@ Html, xml
 
         <div class="flex gap-2">
           <button class="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2" :disabled="!productStore.isAvailable" @click="handleAddToCart">
-            <UIcon name="i-heroicons-shopping-cart" class="w-5 h-5" />
+            <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
             <span>В кошик</span>
           </button>
           <button class="flex-1 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400 text-gray-800 font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
-            <UIcon name="i-heroicons-bolt" class="w-5 h-5" />
+            <UIcon name="heroicons-bolt" class="w-5 h-5" />
             <span>Швидко</span>
           </button>
         </div>

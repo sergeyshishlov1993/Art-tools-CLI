@@ -74,8 +74,8 @@ watch(() => route.path, () => {
         >
           <BBtn
             variant="primary"
-            icon="i-heroicons-bars-3"
-            :icon-right="isOpen ? 'i-heroicons-chevron-up' : 'heroicons:chevron-down-20-solid'"
+            icon="heroicons-bars-3"
+            :icon-right="isOpen ? 'heroicons-chevron-up' : 'heroicons:chevron-down-20-solid'"
           >
             Каталог товарів
           </BBtn>
@@ -108,7 +108,7 @@ watch(() => route.path, () => {
                     }"
                   />
                   <span class="flex-1 text-sm font-medium">{{ category.name }}</span>
-                  <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+                  <UIcon name="heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
                 </NuxtLink>
               </div>
 
@@ -142,7 +142,7 @@ watch(() => route.path, () => {
         <BBtn
           class="lg:hidden"
           variant="primary"
-          icon="i-heroicons-bars-3"
+          icon="heroicons-bars-3"
           @click="isMobileMenuOpen = true"
         >
           Каталог
@@ -159,7 +159,7 @@ watch(() => route.path, () => {
           class="lg:hidden flex-1 flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-500 text-sm"
           @click="isMobileSearchOpen = true"
         >
-          <UIcon name="i-heroicons-magnifying-glass" class="w-5 h-5" />
+          <UIcon name="heroicons-magnifying-glass" class="w-5 h-5" />
           <span>Пошук товарів...</span>
         </button>
       </div>
@@ -186,7 +186,7 @@ watch(() => route.path, () => {
             class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             @click="closeMobileMenu"
           >
-            <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+            <UIcon name="heroicons-x-mark" class="w-6 h-6" />
           </button>
         </div>
 
@@ -208,7 +208,7 @@ watch(() => route.path, () => {
               />
               <span class="flex-1 text-sm font-medium text-gray-700">{{ category.name }}</span>
               <UIcon
-                name="i-heroicons-chevron-down"
+                name="heroicons-chevron-down"
                 class="w-5 h-5 text-gray-400 transition-transform duration-200"
                 :class="{ 'rotate-180': activeCategory === category.id }"
               />

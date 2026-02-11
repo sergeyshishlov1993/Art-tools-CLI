@@ -50,7 +50,7 @@ onMounted(() => {
       <BBtn
         variant="outline"
         size="sm"
-        icon="i-heroicons-chevron-left"
+        icon="heroicons-chevron-left"
         class="!rounded-full !p-2 shadow-lg"
         @click="scroll('left')"
       />
@@ -89,7 +89,7 @@ onMounted(() => {
       <BBtn
         variant="outline"
         size="sm"
-        icon="i-heroicons-chevron-right"
+        icon="heroicons-chevron-right"
         class="!rounded-full !p-2 shadow-lg"
         @click="scroll('right')"
       />

@@ -106,7 +106,7 @@ const labelSizeClasses = computed(() => {
       <Transition name="check">
         <UIcon
           v-if="isChecked"
-          name="i-heroicons-check-20-solid"
+          name="heroicons-check-20-solid"
           class="text-white"
           :class="props.size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'"
         />

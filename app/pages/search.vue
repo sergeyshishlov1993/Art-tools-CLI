@@ -80,7 +80,7 @@ useHead({
         <NuxtLink to="/" class="text-gray-500 hover:text-green-600 transition-colors">
           Головна
         </NuxtLink>
-        <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+        <UIcon name="heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
         <span class="text-gray-800">Пошук</span>
       </nav>
 
@@ -95,7 +95,7 @@ useHead({
               v-model="searchQuery"
               type="search"
               placeholder="Введіть назву товару..."
-              icon="i-heroicons-magnifying-glass"
+              icon="heroicons-magnifying-glass"
               size="lg"
             />
           </div>
@@ -141,7 +141,7 @@ useHead({
         v-else-if="searchQuery && !productsData.loading.value"
         class="bg-white rounded-lg border border-gray-200 p-12 text-center"
       >
-        <UIcon name="i-heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <UIcon name="heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-800 mb-2">Нічого не знайдено</h3>
         <p class="text-gray-500 mb-4">
           За запитом "{{ searchQuery }}" товарів не знайдено
@@ -160,7 +160,7 @@ useHead({
         v-else
         class="bg-white rounded-lg border border-gray-200 p-12 text-center"
       >
-        <UIcon name="i-heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <UIcon name="heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-800 mb-2">Введіть пошуковий запит</h3>
         <p class="text-gray-500">
           Почніть вводити назву товару для пошуку
@@ -180,7 +180,7 @@ useHead({
             class="p-2 border border-gray-300 rounded-lg hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             @click="currentPage--"
           >
-            <UIcon name="i-heroicons-chevron-left" class="w-5 h-5" />
+            <UIcon name="heroicons-chevron-left" class="w-5 h-5" />
           </button>
 
           <template v-for="page in productsData.pages.value" :key="page">
@@ -207,7 +207,7 @@ useHead({
             class="p-2 border border-gray-300 rounded-lg hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             @click="currentPage++"
           >
-            <UIcon name="i-heroicons-chevron-right" class="w-5 h-5" />
+            <UIcon name="heroicons-chevron-right" class="w-5 h-5" />
           </button>
         </div>
       </div>

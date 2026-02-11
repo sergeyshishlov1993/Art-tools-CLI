@@ -46,7 +46,7 @@ async function handleSubmit() {
             v-model="form.username"
             type="text"
             placeholder="Введіть логін"
-            icon="i-heroicons-user"
+            icon="heroicons-user"
             required
           />
         </div>
@@ -58,7 +58,7 @@ async function handleSubmit() {
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Введіть пароль"
-              icon="i-heroicons-lock-closed"
+              icon="heroicons-lock-closed"
               required
             />
             <button
@@ -66,7 +66,7 @@ async function handleSubmit() {
               class="toggle-password"
               @click="showPassword = !showPassword"
             >
-              <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              <UIcon :name="showPassword ? 'heroicons-eye-slash' : 'heroicons-eye'" class="w-5 h-5" />
             </button>
           </div>
         </div>

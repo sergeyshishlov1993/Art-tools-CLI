@@ -80,7 +80,7 @@ function formatPrice(value: number) {
           <div class="flex items-center justify-between p-4 border-b border-gray-100">
             <h3 class="font-bold text-gray-800">Купити в 1 клік</h3>
             <button class="text-gray-400 hover:text-gray-600" @click="close">
-              <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+              <UIcon name="heroicons-x-mark" class="w-6 h-6" />
             </button>
           </div>
 

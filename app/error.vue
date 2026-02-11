@@ -20,8 +20,8 @@ const message = computed(() => {
 })
 
 const icon = computed(() => {
-  if (isNotFound.value) return 'i-heroicons-magnifying-glass'
-  return 'i-heroicons-exclamation-triangle'
+  if (isNotFound.value) return 'heroicons-magnifying-glass'
+  return 'heroicons-exclamation-triangle'
 })
 
 function goHome() {
@@ -70,7 +70,7 @@ function goBack() {
             class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
             @click="goHome"
           >
-            <UIcon name="i-heroicons-home" class="w-5 h-5" />
+            <UIcon name="heroicons-home" class="w-5 h-5" />
             На головну
           </button>
 
@@ -78,7 +78,7 @@ function goBack() {
             class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
             @click="goBack"
           >
-            <UIcon name="i-heroicons-arrow-left" class="w-5 h-5" />
+            <UIcon name="heroicons-arrow-left" class="w-5 h-5" />
             Назад
           </button>
         </div>

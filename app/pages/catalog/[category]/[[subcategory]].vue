@@ -273,7 +273,7 @@ useSeoMeta({
           <span v-else class="text-gray-800">{{ crumb.label }}</span>
           <UIcon
             v-if="index < breadcrumbs.length - 1"
-            name="i-heroicons-chevron-right"
+            name="heroicons-chevron-right"
             class="w-4 h-4 text-gray-400"
           />
         </template>
@@ -297,7 +297,7 @@ useSeoMeta({
         <div class="flex items-center gap-3">
           <BBtn
             variant="secondary"
-            icon="i-heroicons-adjustments-horizontal"
+            icon="heroicons-adjustments-horizontal"
             @click="isFilterOpen = true"
           >
             Фільтри
@@ -392,7 +392,7 @@ useSeoMeta({
                 v-else
                 class="bg-white rounded-lg border border-gray-200 p-12 text-center"
               >
-                <UIcon name="i-heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <UIcon name="heroicons-magnifying-glass" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 class="text-lg font-medium text-gray-800 mb-2">Товарів не знайдено</h3>
                 <p class="text-gray-500 mb-4">Спробуйте змінити параметри фільтрів</p>
                 <BBtn variant="primary" @click="clearFilters">
@@ -417,7 +417,7 @@ useSeoMeta({
                 class="text-green-600 hover:text-green-700 font-medium flex items-center gap-2 mx-auto transition-colors"
                 @click="loadMore"
               >
-                <UIcon name="i-heroicons-arrow-down" class="w-5 h-5" />
+                <UIcon name="heroicons-arrow-down" class="w-5 h-5" />
                 Завантажити ще
               </button>
               <p class="text-sm text-gray-400 mt-2">або прокрутіть вниз</p>
@@ -425,7 +425,7 @@ useSeoMeta({
 
             <div v-else class="py-8 text-center">
               <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm">
-                <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
+                <UIcon name="heroicons-check-circle" class="w-5 h-5 text-green-500" />
                 Всі товари завантажено
               </div>
             </div>
@@ -478,7 +478,7 @@ useSeoMeta({
                 class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 @click="isFilterOpen = false"
               >
-                <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+                <UIcon name="heroicons-x-mark" class="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -513,7 +513,7 @@ useSeoMeta({
           class="fixed bottom-6 right-6 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 hover:border-green-500 transition-all z-30"
           @click="scrollToTop"
         >
-          <UIcon name="i-heroicons-chevron-up" class="w-6 h-6 text-gray-600" />
+          <UIcon name="heroicons-chevron-up" class="w-6 h-6 text-gray-600" />
         </button>
       </Transition>
     </ClientOnly>

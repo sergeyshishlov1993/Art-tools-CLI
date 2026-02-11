@@ -26,7 +26,7 @@ useHead({
         class="block bg-white rounded-2xl border-2 border-green-200 p-6 mb-6 text-center hover:border-green-400 hover:shadow-lg transition-all group"
       >
         <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-          <UIcon name="i-heroicons-phone" class="w-8 h-8 text-white" />
+          <UIcon name="heroicons-phone" class="w-8 h-8 text-white" />
         </div>
         <div class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
           {{ CONTACTS.phoneFormatted }}
@@ -70,7 +70,7 @@ useHead({
               </div>
             </div>
             <UIcon
-              name="i-heroicons-arrow-top-right-on-square"
+              name="heroicons-arrow-top-right-on-square"
               class="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0"
             />
           </a>
@@ -102,7 +102,7 @@ useHead({
               </div>
             </div>
             <UIcon
-              name="i-heroicons-chevron-right"
+              name="heroicons-chevron-right"
               class="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0"
             />
           </NuxtLink>
@@ -111,7 +111,7 @@ useHead({
 
       <!-- Графік роботи -->
       <div class="mt-8 bg-white rounded-xl border border-gray-200 p-6 text-center">
-        <UIcon name="i-heroicons-clock" class="w-8 h-8 text-green-500 mx-auto mb-3" />
+        <UIcon name="heroicons-clock" class="w-8 h-8 text-green-500 mx-auto mb-3" />
         <h3 class="font-semibold text-gray-800 mb-2">Графік роботи</h3>
         <p class="text-gray-600">{{ CONTACTS.schedule.weekdays }}</p>
         <p class="text-gray-600">{{ CONTACTS.schedule.saturday }}</p>

@@ -17,7 +17,7 @@ function padZero(num: number): string {
 <template>
   <div v-if="isActive && !isExpired" class="mt-4 pl-4">
     <div class="flex items-center gap-2 mb-3">
-      <UIcon name="i-heroicons-clock" class="w-5 h-5 text-orange-500" />
+      <UIcon name="heroicons-clock" class="w-5 h-5 text-orange-500" />
       <span class="text-sm font-medium text-orange-700">
         Акційна ціна закінчується через:
       </span>

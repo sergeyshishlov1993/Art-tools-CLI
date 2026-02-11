@@ -136,7 +136,7 @@ onUnmounted(() => {
         >
           <div class="flex-1 relative">
             <UIcon
-              name="i-heroicons-magnifying-glass"
+              name="heroicons-magnifying-glass"
               class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
             />
             <input
@@ -151,7 +151,7 @@ onUnmounted(() => {
               v-if="loading"
               class="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 text-gray-400 animate-spin" />
+              <UIcon name="heroicons-arrow-path" class="w-5 h-5 text-gray-400 animate-spin" />
             </div>
             <button
               v-else-if="query"
@@ -159,7 +159,7 @@ onUnmounted(() => {
               class="absolute right-3 top-1/2 -translate-y-1/2 p-1"
               @click="query = ''"
             >
-              <UIcon name="i-heroicons-x-circle-solid" class="w-5 h-5 text-gray-400" />
+              <UIcon name="heroicons-x-circle-solid" class="w-5 h-5 text-gray-400" />
             </button>
           </div>
           <button
@@ -197,7 +197,7 @@ onUnmounted(() => {
           </div>
 
           <div v-else-if="query.length >= 2 && !loading" class="p-8 text-center">
-            <UIcon name="i-heroicons-face-frown" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <UIcon name="heroicons-face-frown" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p class="text-gray-600 font-medium mb-1">Нічого не знайдено</p>
             <p class="text-sm text-gray-400">
               Спробуйте змінити пошуковий запит
@@ -205,7 +205,7 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="p-8 text-center">
-            <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <UIcon name="heroicons-magnifying-glass" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p class="text-gray-600 font-medium mb-1">Пошук товарів</p>
             <p class="text-sm text-gray-400">
               Введіть мінімум 2 символи для пошуку

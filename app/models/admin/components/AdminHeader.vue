@@ -30,29 +30,29 @@ interface NavItem {
 const navItems = computed<NavItem[]>(() => [
   {
     label: 'Замовлення',
-    icon: 'i-heroicons-shopping-cart',
+    icon: 'heroicons-shopping-cart',
     to: '/admin/orders',
     badge: adminStore.newOrdersCount
   },
   {
     label: 'Товари',
-    icon: 'i-heroicons-cube',
+    icon: 'heroicons-cube',
     to: '/admin/products'
   },
   {
     label: 'Категорії',
-    icon: 'i-heroicons-folder',
+    icon: 'heroicons-folder',
     to: '/admin/categories'
   },
   {
     label: 'Фідбек',
-    icon: 'i-heroicons-chat-bubble-left-right',
+    icon: 'heroicons-chat-bubble-left-right',
     to: '/admin/feedback',
     badge: adminStore.newFeedbackCount
   },
   {
     label: 'Імпорт',
-    icon: 'i-heroicons-arrow-down-tray',
+    icon: 'heroicons-arrow-down-tray',
     to: '/admin/import'
   }
 ])
@@ -128,7 +128,7 @@ watch(() => route.path, () => {
             target="_blank"
             class="hidden md:flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
           >
-            <UIcon name="i-heroicons-arrow-top-right-on-square" class="w-4 h-4" />
+            <UIcon name="heroicons-arrow-top-right-on-square" class="w-4 h-4" />
             <span class="text-sm">На сайт</span>
           </NuxtLink>
 
@@ -138,13 +138,13 @@ watch(() => route.path, () => {
               @click="showUserMenu = !showUserMenu"
             >
               <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                <UIcon name="i-heroicons-user" class="w-4 h-4 text-white" />
+                <UIcon name="heroicons-user" class="w-4 h-4 text-white" />
               </div>
               <span class="text-sm font-medium text-gray-300">
                 {{ authStore.admin?.name || 'Admin' }}
               </span>
               <UIcon
-                name="i-heroicons-chevron-down"
+                name="heroicons-chevron-down"
                 class="w-4 h-4 text-gray-400 transition-transform"
                 :class="{ 'rotate-180': showUserMenu }"
               />
@@ -163,7 +163,7 @@ watch(() => route.path, () => {
                   class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-gray-700 transition-colors"
                   @click="handleLogout"
                 >
-                  <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
+                  <UIcon name="heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
                   Вийти
                 </button>
               </div>
@@ -175,7 +175,7 @@ watch(() => route.path, () => {
             @click="toggleMobileMenu"
           >
             <UIcon
-              :name="isMobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
+              :name="isMobileMenuOpen ? 'heroicons-x-mark' : 'heroicons-bars-3'"
               class="w-6 h-6"
             />
             <span
@@ -216,7 +216,7 @@ watch(() => route.path, () => {
             class="p-2 text-gray-400 hover:text-white transition-colors"
             @click="closeMobileMenu"
           >
-            <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+            <UIcon name="heroicons-x-mark" class="w-6 h-6" />
           </button>
         </div>
 
@@ -250,13 +250,13 @@ watch(() => route.path, () => {
             class="flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
             @click="closeMobileMenu"
           >
-            <UIcon name="i-heroicons-arrow-top-right-on-square" class="w-5 h-5" />
+            <UIcon name="heroicons-arrow-top-right-on-square" class="w-5 h-5" />
             <span>Перейти на сайт</span>
           </NuxtLink>
 
           <div class="flex items-center gap-3 pt-3 border-t border-gray-800">
             <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-              <UIcon name="i-heroicons-user" class="w-4 h-4 text-white" />
+              <UIcon name="heroicons-user" class="w-4 h-4 text-white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-medium text-gray-300">{{ authStore.admin?.name || 'Admin' }}</p>
@@ -268,7 +268,7 @@ watch(() => route.path, () => {
             class="w-full flex items-center justify-center gap-2 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors"
             @click="handleLogout"
           >
-            <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-5 h-5" />
+            <UIcon name="heroicons-arrow-right-on-rectangle" class="w-5 h-5" />
             <span>Вийти</span>
           </button>
         </div>

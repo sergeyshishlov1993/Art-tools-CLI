@@ -34,7 +34,7 @@ function formatPrice(value: number) {
           </NuxtLink>
         </div>
         <button class="text-gray-400 hover:text-red-500 transition-colors" @click="cartStore.removeFromCart(item.id)">
-          <UIcon name="i-heroicons-trash" class="w-5 h-5" />
+          <UIcon name="heroicons-trash" class="w-5 h-5" />
         </button>
       </div>
 

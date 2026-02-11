@@ -294,7 +294,7 @@ onUnmounted(() => {
         class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         @click="goBack"
       >
-        <UIcon name="i-heroicons-arrow-left" class="w-5 h-5" />
+        <UIcon name="heroicons-arrow-left" class="w-5 h-5" />
       </button>
       <div>
         <h1 class="text-2xl font-bold text-gray-800">
@@ -485,7 +485,7 @@ onUnmounted(() => {
           </div>
 
           <div v-else>
-            <UIcon name="i-heroicons-cloud-arrow-up" class="w-10 h-10 mx-auto text-gray-400 mb-2" />
+            <UIcon name="heroicons-cloud-arrow-up" class="w-10 h-10 mx-auto text-gray-400 mb-2" />
             <p class="text-sm text-gray-600">
               <span class="text-green-600 font-medium">Натисніть</span> або перетягніть фото
             </p>
@@ -511,7 +511,7 @@ onUnmounted(() => {
               class="absolute top-1.5 right-1.5 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
               @click.stop="removeNewPicture(index)"
             >
-              <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
+              <UIcon name="heroicons-x-mark" class="w-4 h-4" />
             </button>
             <span
               v-if="index === 0"
@@ -539,7 +539,7 @@ onUnmounted(() => {
               class="absolute top-1.5 right-1.5 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
               @click.stop="openDeletePictureModal(pic.id)"
             >
-              <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
+              <UIcon name="heroicons-x-mark" class="w-4 h-4" />
             </button>
             <span
               v-if="index === 0"
@@ -566,7 +566,7 @@ onUnmounted(() => {
             class="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 font-medium"
             @click="addParameter"
           >
-            <UIcon name="i-heroicons-plus" class="w-4 h-4" />
+            <UIcon name="heroicons-plus" class="w-4 h-4" />
             Додати
           </button>
         </div>
@@ -598,13 +598,13 @@ onUnmounted(() => {
               class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
               @click="removeParameter(index)"
             >
-              <UIcon name="i-heroicons-trash" class="w-4 h-4" />
+              <UIcon name="heroicons-trash" class="w-4 h-4" />
             </button>
           </div>
         </div>
 
         <div v-else class="text-center py-6 text-gray-400">
-          <UIcon name="i-heroicons-list-bullet" class="w-8 h-8 mx-auto mb-2" />
+          <UIcon name="heroicons-list-bullet" class="w-8 h-8 mx-auto mb-2" />
           <p class="text-sm">Характеристики не додані</p>
           <button
             type="button"
@@ -632,7 +632,7 @@ onUnmounted(() => {
       </div>
 
       <div v-if="store.error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 flex items-center gap-2">
-        <UIcon name="i-heroicons-exclamation-circle" class="w-5 h-5 flex-shrink-0" />
+        <UIcon name="heroicons-exclamation-circle" class="w-5 h-5 flex-shrink-0" />
         {{ store.error }}
       </div>
 
@@ -644,7 +644,7 @@ onUnmounted(() => {
           type="submit"
           variant="primary"
           :loading="store.saving"
-          icon="i-heroicons-check"
+          icon="heroicons-check"
         >
           {{ isNew ? 'Створити товар' : 'Зберегти зміни' }}
         </BBtn>

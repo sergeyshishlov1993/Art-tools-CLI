@@ -109,7 +109,7 @@ onUnmounted(() => {
         </span>
 
         <UIcon
-          name="i-heroicons-chevron-down"
+          name="heroicons-chevron-down"
           class="w-5 h-5 text-gray-400 transition-transform duration-200"
           :class="{ 'rotate-180': isOpen }"
         />

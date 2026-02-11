@@ -49,7 +49,7 @@ async function handleSubmit() {
             Наші менеджери з радістю проконсультують вас
           </p>
           <div class="flex items-center gap-3 text-gray-400">
-            <UIcon name="i-heroicons-clock" class="w-5 h-5" />
+            <UIcon name="heroicons-clock" class="w-5 h-5" />
             <span>Передзвонимо протягом 15 хвилин</span>
           </div>
         </div>
@@ -63,14 +63,14 @@ async function handleSubmit() {
               <BInput
                 v-model="form.name"
                 placeholder="Ваше ім'я"
-                icon="i-heroicons-user"
+                icon="heroicons-user"
                 required
               />
 
               <BInput
                 v-model="form.phone"
                 mask="phone"
-                icon="i-heroicons-phone"
+                icon="heroicons-phone"
                 required
               />
 
@@ -81,7 +81,7 @@ async function handleSubmit() {
                 block
                 :loading="feedbackStore.submitting"
                 :disabled="!isFormValid"
-                icon="i-heroicons-phone"
+                icon="heroicons-phone"
               >
                 Зателефонуйте мені
               </BBtn>

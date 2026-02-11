@@ -14,10 +14,10 @@ interface ToastColors {
 const { toasts, remove } = useNotify()
 
 const icons: Record<ToastType, string> = {
-  success: 'i-heroicons-check-circle-solid',
-  error: 'i-heroicons-x-circle-solid',
-  warning: 'i-heroicons-exclamation-triangle-solid',
-  info: 'i-heroicons-information-circle-solid'
+  success: 'heroicons-check-circle-solid',
+  error: 'heroicons-x-circle-solid',
+  warning: 'heroicons-exclamation-triangle-solid',
+  info: 'heroicons-information-circle-solid'
 }
 
 const colors: Record<ToastType, ToastColors> = {
@@ -105,7 +105,7 @@ function getColors(type: ToastType): ToastColors {
                 class="flex-shrink-0 p-1 rounded hover:bg-gray-100 transition-colors"
                 @click="remove(toast.id)"
               >
-                <UIcon name="i-heroicons-x-mark" class="w-4 h-4 text-gray-400" />
+                <UIcon name="heroicons-x-mark" class="w-4 h-4 text-gray-400" />
               </button>
             </div>
           </div>

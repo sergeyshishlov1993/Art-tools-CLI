@@ -235,7 +235,7 @@ const shouldShowSubcategories = computed(() => {
                   Спеціальні пропозиції
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections.special }"
                 />
@@ -274,7 +274,7 @@ const shouldShowSubcategories = computed(() => {
                   Категорія
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections.categories }"
                 />
@@ -300,7 +300,7 @@ const shouldShowSubcategories = computed(() => {
                   >
                     <span>{{ showAllCategories ? 'Згорнути' : `Показати всі (${filters.categories.length})` }}</span>
                     <UIcon
-                      name="i-heroicons-chevron-down"
+                      name="heroicons-chevron-down"
                       class="w-4 h-4 transition-transform duration-300"
                       :class="{ 'rotate-180': showAllCategories }"
                     />
@@ -319,7 +319,7 @@ const shouldShowSubcategories = computed(() => {
                   Підкатегорія
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections.subcategories }"
                 />
@@ -346,7 +346,7 @@ const shouldShowSubcategories = computed(() => {
                   >
                     <span>{{ showAllSubcategories ? 'Згорнути' : `Показати всі (${filters.subcategories.length})` }}</span>
                     <UIcon
-                      name="i-heroicons-chevron-down"
+                      name="heroicons-chevron-down"
                       class="w-4 h-4 transition-transform duration-300"
                       :class="{ 'rotate-180': showAllSubcategories }"
                     />
@@ -365,7 +365,7 @@ const shouldShowSubcategories = computed(() => {
                   Ціна, грн
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections.price }"
                 />
@@ -409,7 +409,7 @@ const shouldShowSubcategories = computed(() => {
                   Бренд
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections.brands }"
                 />
@@ -422,7 +422,7 @@ const shouldShowSubcategories = computed(() => {
                     v-model="brandSearch"
                     type="search"
                     placeholder="Пошук бренду..."
-                    icon="i-heroicons-magnifying-glass"
+                    icon="heroicons-magnifying-glass"
                     size="sm"
                   />
 
@@ -445,7 +445,7 @@ const shouldShowSubcategories = computed(() => {
                   >
                     <span>{{ showAllBrands ? 'Згорнути' : `Показати всі (${filteredBrands.length})` }}</span>
                     <UIcon
-                      name="i-heroicons-chevron-down"
+                      name="heroicons-chevron-down"
                       class="w-4 h-4 transition-transform duration-300"
                       :class="{ 'rotate-180': showAllBrands }"
                     />
@@ -468,7 +468,7 @@ const shouldShowSubcategories = computed(() => {
                   {{ attr.name }}
                 </span>
                 <UIcon
-                  name="i-heroicons-chevron-down"
+                  name="heroicons-chevron-down"
                   class="w-5 h-5 text-gray-400 transition-transform duration-300"
                   :class="{ 'rotate-180': expandedSections[attr.slug] }"
                 />
@@ -494,7 +494,7 @@ const shouldShowSubcategories = computed(() => {
                   >
                     <span>{{ showAllAttributes[attr.slug] ? 'Згорнути' : `Показати всі (${attr.values.length})` }}</span>
                     <UIcon
-                      name="i-heroicons-chevron-down"
+                      name="heroicons-chevron-down"
                       class="w-4 h-4 transition-transform duration-300"
                       :class="{ 'rotate-180': showAllAttributes[attr.slug] }"
                     />
@@ -521,7 +521,7 @@ const shouldShowSubcategories = computed(() => {
           class="absolute inset-0 flex items-center justify-center"
         >
           <div class="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-lg shadow-sm">
-            <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 text-green-500 animate-spin" />
+            <UIcon name="heroicons-arrow-path" class="w-5 h-5 text-green-500 animate-spin" />
             <span class="text-sm text-gray-600">Оновлення...</span>
           </div>
         </div>

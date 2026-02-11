@@ -53,7 +53,7 @@ const discountPercent = computed(() => {
             <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-green-50">
               <h3 class="font-bold text-gray-800 flex items-center gap-2">
                 <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <UIcon name="i-heroicons-check" class="w-5 h-5 text-white" />
+                  <UIcon name="heroicons-check" class="w-5 h-5 text-white" />
                 </div>
                 Товар додано в кошик
               </h3>
@@ -61,7 +61,7 @@ const discountPercent = computed(() => {
                 class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
                 @click="close"
               >
-                <UIcon name="i-heroicons-x-mark" class="w-5 h-5 text-gray-500" />
+                <UIcon name="heroicons-x-mark" class="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
@@ -120,7 +120,7 @@ const discountPercent = computed(() => {
 
                   <!-- Економія -->
                   <div v-if="product.oldPrice" class="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
-                    <UIcon name="i-heroicons-tag" class="w-3.5 h-3.5" />
+                    <UIcon name="heroicons-tag" class="w-3.5 h-3.5" />
                     Економія: {{ formatPrice(product.oldPrice - product.price) }} ₴
                   </div>
                 </div>
@@ -134,7 +134,7 @@ const discountPercent = computed(() => {
                 variant="primary"
                 size="lg"
                 block
-                icon="i-heroicons-shopping-bag"
+                icon="heroicons-shopping-bag"
                 @click="goToCart"
               >
                 Оформити замовлення
@@ -145,7 +145,7 @@ const discountPercent = computed(() => {
                 variant="secondary"
                 size="lg"
                 block
-                icon="i-heroicons-bolt"
+                icon="heroicons-bolt"
                 @click="handleQuickBuy"
               >
                 Купити в 1 клік
