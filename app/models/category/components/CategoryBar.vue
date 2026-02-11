@@ -75,7 +75,7 @@ watch(() => route.path, () => {
           <BBtn
             variant="primary"
             icon="i-heroicons-bars-3"
-            :icon-right="isOpen ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down-20-solid'"
+            :icon-right="isOpen ? 'i-heroicons-chevron-up' : 'heroicons:chevron-down-20-solid'"
           >
             Каталог товарів
           </BBtn>

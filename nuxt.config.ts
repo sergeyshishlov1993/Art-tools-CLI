@@ -1,4 +1,3 @@
-// nuxt.config.ts
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -23,6 +22,9 @@ export default defineNuxtConfig({
 
   icon: {
     serverBundle: 'local',
+    clientBundle: {
+      scan: true,
+    },
   },
 
   // @ts-expect-error nuxt-gtag types not compatible with Nuxt 4 yet
@@ -74,10 +76,8 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content:
-                        'Art Tools — електроінструменти та обладнання. Продаж, каталог, актуальні ціни та наявність.',
+          content: 'Art Tools — електроінструменти та обладнання. Продаж, каталог, актуальні ціни та наявність.',
         },
-
         { property: 'og:type', content: 'website' },
         { property: 'og:title', content: 'Art Tools — Електроінструменти та обладнання' },
         {
@@ -88,7 +88,6 @@ export default defineNuxtConfig({
         { property: 'og:url', content: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000' },
         { property: 'og:site_name', content: 'Art Tools' },
         { property: 'og:locale', content: 'uk_UA' },
-
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Art Tools — Електроінструменти та обладнання' },
         { name: 'twitter:description', content: 'Електроінструменти та обладнання. Каталог і продаж.' },
