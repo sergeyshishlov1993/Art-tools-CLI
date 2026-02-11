@@ -34,8 +34,6 @@ const zoomPosition = ref({ x: 50, y: 50 })
 const imageRef = ref<HTMLDivElement | null>(null)
 const failedImages = ref<Set<string>>(new Set())
 const loadedImages = ref<Set<string>>(new Set())
-const isLoading = ref(true)
-const loadError = ref<string | null>(null)
 const supportsHover = ref(false)
 const touchStartX = ref(0)
 const touchEndX = ref(0)
@@ -46,29 +44,22 @@ onMounted(() => {
   categoryStore.fetchActive()
 })
 
-async function loadProduct(productSlug: string) {
-  isLoading.value = true
-  loadError.value = null
-  selectedImageIndex.value = 0
-  quantity.value = 1
-  failedImages.value = new Set()
-  loadedImages.value = new Set()
+const { pending: isLoading, error: asyncError } = await useAsyncData(
+  `product-${slug.value}`,
+  async () => {
+    selectedImageIndex.value = 0
+    quantity.value = 1
+    failedImages.value = new Set()
+    loadedImages.value = new Set()
+    await productStore.fetchProduct(slug.value)
+    return productStore.currentProduct
+  },
+  { watch: [slug] }
+)
 
-  try {
-    await productStore.fetchProduct(productSlug)
-    if (productStore.error) {
-      loadError.value = productStore.error
-    }
-  } catch (error) {
-    loadError.value = error instanceof Error ? error.message : 'Помилка завантаження товару'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-watch(slug, (newSlug) => {
-  if (newSlug) loadProduct(newSlug)
-}, { immediate: true })
+const loadError = computed(() =>
+  asyncError.value?.message || productStore.error
+)
 
 watch(
   () => productStore.currentProductCardData,
@@ -125,6 +116,41 @@ const modalProduct = computed(() => {
     return { ...productStore.cartItemData, to: `/product/${productStore.currentProduct?.slug}` }
   }
   return null
+})
+
+const seoTitle = computed(() =>
+  productStore.currentProduct?.product_name || 'Товар'
+)
+
+const seoDescription = computed(() =>
+  productStore.description
+    || (productStore.currentProduct?.product_name
+      ? `Купити ${productStore.currentProduct.product_name} в інтернет-магазині Art Tools`
+      : 'Інтернет-магазин Art Tools')
+)
+
+const seoImage = computed(() => {
+  const img = productStore.mainImage
+  if (!img || img === '/images/no-image.png') return 'https://art-tools.com.ua/og-image.jpg'
+  if (img.startsWith('http')) return img
+  return `https://art-tools.com.ua${img}`
+})
+
+useHead({
+  title: seoTitle,
+  meta: [
+    { name: 'description', content: seoDescription },
+    { property: 'og:type', content: 'product' },
+    { property: 'og:title', content: seoTitle },
+    { property: 'og:description', content: seoDescription },
+    { property: 'og:image', content: seoImage },
+    { property: 'og:site_name', content: 'Art Tools' },
+    { property: 'og:locale', content: 'uk_UA' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: seoTitle },
+    { name: 'twitter:description', content: seoDescription },
+    { name: 'twitter:image', content: seoImage },
+  ]
 })
 
 function handleImageError(img: string, index: number) {
@@ -256,34 +282,8 @@ function decrementQuantity() { if (quantity.value > 1) quantity.value-- }
 onUnmounted(() => {
   productStore.clearProduct()
 })
-
-useSeoMeta({
-  title: () => productStore.currentProduct?.product_name || 'Товар',
-  description: () =>
-    productStore.description
-      || `Купити ${productStore.currentProduct?.product_name} в інтернет-магазині Art Tools`,
-  ogType: 'website',
-  ogTitle: () => productStore.currentProduct?.product_name || 'Товар',
-  ogDescription: () =>
-    productStore.description
-      || `Купити ${productStore.currentProduct?.product_name} ✓ В наявності ✓ Доставка по Україні`,
-  ogImage: () =>
-    currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
-  ogSiteName: 'Art Tools',
-  ogLocale: 'uk_UA',
-  twitterCard: 'summary_large_image',
-  twitterTitle: () => productStore.currentProduct?.product_name || 'Товар',
-  twitterDescription: () =>
-    productStore.description
-      || `Купити ${productStore.currentProduct?.product_name} в Art Tools`,
-  twitterImage: () =>
-    currentImage.value !== '/images/no-image.png' ? currentImage.value : '/og-image.jpg',
-})
 </script>
-Часть 2 — template:
 
-
-Html, xml
 <template>
   <div class="bg-gray-50 pb-10">
     <div class="max-w-7xl mx-auto px-4 py-6">
@@ -414,7 +414,7 @@ Html, xml
               </span>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-4">
+            <div class="bg-gray-50 rounded-xl p-4 hidden lg:block">
               <div class="flex items-end gap-3 flex-wrap">
                 <span class="text-2xl sm:text-3xl font-bold" :class="showPromoTimer ? 'text-red-600' : 'text-gray-900'">
                   {{ formattedPrice }} ₴

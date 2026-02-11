@@ -1,7 +1,7 @@
 export const CONTACTS = {
-  phone: '+380 66 91 81 991',
-  phoneFormatted: '+380 66 91 81 991',
-  phoneLink: 'tel:+380669181991',
+  phone: '+380 68 23 63 071',
+  phoneFormatted: '+380 68 23 63 071',
+  phoneLink: 'tel:+380 68 23 63 071',
 
   schedule: {
     weekdays: 'Пн-Пт: 9:00 - 18:00',
