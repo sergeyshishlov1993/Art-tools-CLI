@@ -16,7 +16,6 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'nuxt-swiper',
     'nuxt-viewport',
-    'nuxt-gtag',
     '@nuxtjs/sitemap',
   ],
 
@@ -25,11 +24,6 @@ export default defineNuxtConfig({
     clientBundle: {
       scan: true,
     },
-  },
-
-  // @ts-expect-error nuxt-gtag types not compatible with Nuxt 4 yet
-  gtag: {
-    id: 'GTM-TWLP3CW3',
   },
 
   site: {
@@ -71,6 +65,18 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'uk',
       },
+      script: [
+        {
+          innerHTML: '(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=\'https://www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);})(window,document,\'script\',\'dataLayer\',\'GTM-TWLP3CW3\');',
+          type: 'text/javascript',
+        },
+      ],
+      noscript: [
+        {
+          innerHTML: '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TWLP3CW3" height="0" width="0" style="display:none;visibility:hidden"></iframe>',
+          tagPosition: 'bodyOpen',
+        },
+      ],
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
