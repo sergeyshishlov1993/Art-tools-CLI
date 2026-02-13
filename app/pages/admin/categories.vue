@@ -1,309 +1,3 @@
-<template>
-  <div class="category-manager">
-    <h1>Управління категоріями</h1>
-
-    <div v-if="overview" class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value">{{ overview.stats.total }}</div>
-        <div class="stat-label">Всього товарів</div>
-      </div>
-      <div class="stat-card success">
-        <div class="stat-value">{{ overview.stats.mapped }}</div>
-        <div class="stat-label">Замаплено</div>
-      </div>
-      <div class="stat-card warning">
-        <div class="stat-value">{{ overview.stats.unmapped }}</div>
-        <div class="stat-label">Незамаплено</div>
-      </div>
-      <div class="stat-card info">
-        <div class="stat-value">{{ overview.stats.percent_mapped }}</div>
-        <div class="stat-label">Прогрес</div>
-      </div>
-    </div>
-
-    <div v-if="error" class="alert error" @click="error = null">
-      {{ error }}
-    </div>
-    <div v-if="success" class="alert success" @click="success = null">
-      {{ success }}
-    </div>
-
-    <div class="tabs">
-      <button
-        :class="{ active: activeTab === 'unmapped' }"
-        @click="activeTab = 'unmapped'"
-      >
-        Незамаплені ({{ unmapped.total_unmapped || 0 }})
-      </button>
-      <button
-        :class="{ active: activeTab === 'mapped' }"
-        @click="activeTab = 'mapped'"
-      >
-        Замаплені
-      </button>
-      <button
-        :class="{ active: activeTab === 'structure' }"
-        @click="activeTab = 'structure'"
-      >
-        Структура категорій
-      </button>
-      <button
-        :class="{ active: activeTab === 'suppliers' }"
-        @click="activeTab = 'suppliers'"
-      >
-        Постачальники
-      </button>
-    </div>
-
-    <div class="tab-content">
-      <div v-if="activeTab === 'unmapped'" class="unmapped-section">
-        <div class="two-columns">
-          <div class="column">
-            <h3>Категорії постачальників</h3>
-            <div class="category-list">
-              <div
-                v-for="cat in unmapped.categories"
-                :key="cat.supplier_sub_category_id"
-                class="category-item"
-                :class="{ selected: mapForm.from === cat.supplier_sub_category_id }"
-                @click="selectFromCategory(cat)"
-              >
-                <span class="cat-name">{{ cat.supplier_sub_category_name }}</span>
-                <span class="cat-count">{{ cat.product_count }} товарів</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="column">
-            <h3>Наші категорії</h3>
-            <input
-              v-model="categorySearch"
-              type="text"
-              placeholder="Пошук категорії..."
-              class="search-input"
-            >
-            <div class="category-list">
-              <div
-                v-for="cat in filteredMyCategories"
-                :key="cat.id"
-                class="category-item"
-                :class="{ selected: mapForm.to === cat.id }"
-                @click="selectToCategory(cat)"
-              >
-                <span class="cat-parent">{{ cat.parent_name }}</span>
-                <span class="cat-name">{{ cat.name }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="mapForm.from && mapForm.to" class="map-action">
-          <p>
-            <strong>{{ getFromCategoryName() }}</strong>
-            →
-            <strong>{{ getToCategoryName() }}</strong>
-          </p>
-          <button class="btn primary" :disabled="loading" @click="mapCategory">
-            {{ loading ? 'Маплю...' : 'Замапити' }}
-          </button>
-        </div>
-      </div>
-
-      <div v-if="activeTab === 'mapped'" class="mapped-section">
-        <div class="two-columns">
-          <div class="column">
-            <h3>Категорії з товарами</h3>
-            <div class="category-list">
-              <div
-                v-for="cat in mapped"
-                :key="cat.sub_category_id"
-                class="category-item"
-                :class="{ selected: selectedCategory?.sub_category_id === cat.sub_category_id }"
-                @click="selectMappedCategory(cat)"
-              >
-                <span class="cat-parent">{{ cat.category_name }}</span>
-                <span class="cat-name">{{ cat.sub_category_name }}</span>
-                <span class="cat-count">{{ cat.product_count }} товарів</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="column">
-            <h3>Товари в категорії</h3>
-            <div v-if="selectedCategory">
-              <input
-                v-model="productSearch"
-                type="text"
-                placeholder="Пошук товару..."
-                class="search-input"
-                @input="debouncedFetchProducts"
-              >
-
-              <div class="products-list">
-                <div
-                  v-for="product in products"
-                  :key="product.product_id"
-                  class="product-item"
-                  :class="{ selected: selectedProducts.includes(product.product_id) }"
-                  @click="toggleProductSelection(product.product_id)"
-                >
-                  <input
-                    type="checkbox"
-                    :checked="selectedProducts.includes(product.product_id)"
-                    @click.stop
-                  >
-                  <span class="product-name">{{ product.name }}</span>
-                  <span class="product-price">{{ product.price }} грн</span>
-                  <span class="product-supplier">{{ product.supplier_prefix }}</span>
-                </div>
-              </div>
-
-              <div class="pagination">
-                <button :disabled="page <= 1" @click="prevPage">←</button>
-                <span>{{ page }} / {{ totalPages }}</span>
-                <button :disabled="page >= totalPages" @click="nextPage">→</button>
-              </div>
-
-              <div v-if="selectedProducts.length > 0" class="remap-section">
-                <p>Вибрано: {{ selectedProducts.length }} товарів</p>
-                <select v-model="remapTo" class="select-input">
-                  <option value="">Виберіть категорію...</option>
-                  <optgroup
-                    v-for="cat in overview?.my?.categories"
-                    :key="cat.category_id"
-                    :label="cat.category_name"
-                  >
-                    <option
-                      v-for="sub in allSubcategories"
-                      :key="sub.id"
-                      :value="sub.id"
-                    >
-                      {{ sub.name }}
-                    </option>
-                  </optgroup>
-                </select>
-                <button
-                  class="btn primary"
-                  :disabled="!remapTo || loading"
-                  @click="remapProducts"
-                >
-                  Перемістити
-                </button>
-                <button class="btn secondary" @click="selectedProducts = []">
-                  Скасувати
-                </button>
-              </div>
-            </div>
-            <div v-else class="placeholder">
-              Виберіть категорію зліва
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="activeTab === 'structure'" class="structure-section">
-        <div class="two-columns">
-          <div class="column">
-            <h3>Категорії</h3>
-            <div class="category-tree">
-              <div
-                v-for="cat in overview?.my?.categories"
-                :key="cat.category_id"
-                class="tree-item"
-              >
-                <div class="tree-parent" @click="toggleExpand(cat.category_id)">
-                  <span class="expand-icon">{{ expanded[cat.category_id] ? '▼' : '▶' }}</span>
-                  <span>{{ cat.category_name }}</span>
-                  <span class="count">({{ cat.subcategories_count }})</span>
-                  <button class="btn-small danger" @click.stop="deleteCategory(cat.category_id)">✕</button>
-                </div>
-                <div v-if="expanded[cat.category_id]" class="tree-children">
-                  <div
-                    v-for="sub in allSubcategories"
-                    :key="sub.id"
-                    class="tree-child"
-                  >
-                    <span>{{ sub.name }}</span>
-                    <button class="btn-small danger" @click="deleteSubcategory(sub.id)">✕</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="column">
-            <h3>Додати категорію</h3>
-            <form class="form" @submit.prevent="createCategory">
-              <input
-                v-model="newCategory.name"
-                type="text"
-                placeholder="Назва категорії"
-                required
-              >
-              <input
-                v-model="newCategory.id"
-                type="text"
-                placeholder="ID (опційно)"
-              >
-              <button type="submit" class="btn primary" :disabled="loading">
-                Створити категорію
-              </button>
-            </form>
-
-            <h3>Додати підкатегорію</h3>
-            <form class="form" @submit.prevent="createSubcategory">
-              <select v-model="newSubCategory.parentId" required>
-                <option value="">Виберіть батьківську категорію...</option>
-                <option
-                  v-for="cat in overview?.my?.categories"
-                  :key="cat.category_id"
-                  :value="cat.category_id"
-                >
-                  {{ cat.category_name }}
-                </option>
-              </select>
-              <input
-                v-model="newSubCategory.name"
-                type="text"
-                placeholder="Назва підкатегорії"
-                required
-              >
-              <input
-                v-model="newSubCategory.id"
-                type="text"
-                placeholder="ID (опційно)"
-              >
-              <input
-                v-model="newSubCategory.picture"
-                type="text"
-                placeholder="URL картинки (опційно)"
-              >
-              <button type="submit" class="btn primary" :disabled="loading">
-                Створити підкатегорію
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="activeTab === 'suppliers'" class="suppliers-section">
-        <h3>Постачальники</h3>
-        <div class="suppliers-grid">
-          <div
-            v-for="supplier in suppliers"
-            :key="supplier.supplier_prefix"
-            class="supplier-card"
-          >
-            <div class="supplier-name">{{ supplier.supplier_name || supplier.supplier_prefix }}</div>
-            <div class="supplier-prefix">{{ supplier.supplier_prefix }}</div>
-            <div class="supplier-count">{{ supplier.product_count }} товарів</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 definePageMeta({
   layout: 'admin'
@@ -392,8 +86,19 @@ const page = ref(1)
 const totalPages = ref(1)
 const productSearch = ref('')
 const categorySearch = ref('')
+const unmappedSearch = ref('')
+const mappedSearch = ref('')
+const structureSearch = ref('')
 
 const expanded = ref<Record<string, boolean>>({})
+
+const filteredUnmappedCategories = computed(() => {
+  if (!unmappedSearch.value) return unmapped.value.categories
+  const search = unmappedSearch.value.toLowerCase()
+  return unmapped.value.categories.filter(cat =>
+    cat.supplier_sub_category_name.toLowerCase().includes(search)
+  )
+})
 
 const filteredMyCategories = computed(() => {
   if (!categorySearch.value) return unmapped.value.my_categories
@@ -404,7 +109,38 @@ const filteredMyCategories = computed(() => {
   )
 })
 
+const filteredMappedCategories = computed(() => {
+  if (!mappedSearch.value) return mapped.value
+  const search = mappedSearch.value.toLowerCase()
+  return mapped.value.filter(cat =>
+    cat.sub_category_name.toLowerCase().includes(search) ||
+      cat.category_name.toLowerCase().includes(search)
+  )
+})
+
+const filteredStructureCategories = computed(() => {
+  if (!structureSearch.value) return overview.value?.my?.categories || []
+  const search = structureSearch.value.toLowerCase()
+  const categories = overview.value?.my?.categories || []
+  return categories.filter(cat => {
+    const nameMatch = cat.category_name.toLowerCase().includes(search)
+    const subsMatch = unmapped.value.my_categories
+      .filter(sub => sub.parent_name === cat.category_name)
+      .some(sub => sub.name.toLowerCase().includes(search))
+    return nameMatch || subsMatch
+  })
+})
+
 const allSubcategories = computed(() => unmapped.value.my_categories)
+
+function getFilteredSubcategories(categoryId: string) {
+  const category = overview.value?.my?.categories.find(cat => cat.category_id === categoryId)
+  if (!category) return []
+  const subs = unmapped.value.my_categories.filter(sub => sub.parent_name === category.category_name)
+  if (!structureSearch.value) return subs
+  const search = structureSearch.value.toLowerCase()
+  return subs.filter(sub => sub.name.toLowerCase().includes(search))
+}
 
 async function fetchOverview() {
   try {
@@ -449,14 +185,13 @@ async function fetchProducts() {
       `${API_URL}admin/categories/${selectedCategory.value.sub_category_id}/products`,
       {
         params: {
-          page: page.value,
-          limit: 20,
+          page: 1,
+          limit: 9999,
           search: productSearch.value
         }
       }
     )
     products.value = data.products || []
-    totalPages.value = data.pages || 1
   } catch (err: unknown) {
     error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
   }
@@ -656,6 +391,325 @@ watch([error, success], () => {
   }, 5000)
 })
 </script>
+
+<template>
+  <div class="category-manager">
+    <h1>Управління категоріями</h1>
+
+    <div v-if="overview" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ overview.stats.total }}</div>
+        <div class="stat-label">Всього товарів</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-value">{{ overview.stats.mapped }}</div>
+        <div class="stat-label">Замаплено</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-value">{{ overview.stats.unmapped }}</div>
+        <div class="stat-label">Незамаплено</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-value">{{ overview.stats.percent_mapped }}</div>
+        <div class="stat-label">Прогрес</div>
+      </div>
+    </div>
+
+    <div v-if="error" class="alert error" @click="error = null">
+      {{ error }}
+    </div>
+    <div v-if="success" class="alert success" @click="success = null">
+      {{ success }}
+    </div>
+
+    <div class="tabs">
+      <button
+        :class="{ active: activeTab === 'unmapped' }"
+        @click="activeTab = 'unmapped'"
+      >
+        Незамаплені ({{ unmapped.total_unmapped || 0 }})
+      </button>
+      <button
+        :class="{ active: activeTab === 'mapped' }"
+        @click="activeTab = 'mapped'"
+      >
+        Замаплені
+      </button>
+      <button
+        :class="{ active: activeTab === 'structure' }"
+        @click="activeTab = 'structure'"
+      >
+        Структура категорій
+      </button>
+      <button
+        :class="{ active: activeTab === 'suppliers' }"
+        @click="activeTab = 'suppliers'"
+      >
+        Постачальники
+      </button>
+    </div>
+
+    <div class="tab-content">
+      <div v-if="activeTab === 'unmapped'" class="unmapped-section">
+        <div class="two-columns">
+          <div class="column">
+            <h3>Категорії постачальників</h3>
+            <input
+              v-model="unmappedSearch"
+              type="text"
+              placeholder="Пошук категорії постачальника..."
+              class="search-input"
+            >
+            <div class="category-list">
+              <div
+                v-for="cat in filteredUnmappedCategories"
+                :key="cat.supplier_sub_category_id"
+                class="category-item"
+                :class="{ selected: mapForm.from === cat.supplier_sub_category_id }"
+                @click="selectFromCategory(cat)"
+              >
+                <span class="cat-name">{{ cat.supplier_sub_category_name }}</span>
+                <span class="cat-count">{{ cat.product_count }} товарів</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <h3>Наші категорії</h3>
+            <input
+              v-model="categorySearch"
+              type="text"
+              placeholder="Пошук категорії..."
+              class="search-input"
+            >
+            <div class="category-list">
+              <div
+                v-for="cat in filteredMyCategories"
+                :key="cat.id"
+                class="category-item"
+                :class="{ selected: mapForm.to === cat.id }"
+                @click="selectToCategory(cat)"
+              >
+                <span class="cat-parent">{{ cat.parent_name }}</span>
+                <span class="cat-name">{{ cat.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="mapForm.from && mapForm.to" class="map-action">
+          <p>
+            <strong>{{ getFromCategoryName() }}</strong>
+            →
+            <strong>{{ getToCategoryName() }}</strong>
+          </p>
+          <button class="btn primary" :disabled="loading" @click="mapCategory">
+            {{ loading ? 'Маплю...' : 'Замапити' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'mapped'" class="mapped-section">
+        <div class="two-columns">
+          <div class="column">
+            <h3>Категорії з товарами</h3>
+            <input
+              v-model="mappedSearch"
+              type="text"
+              placeholder="Пошук категорії..."
+              class="search-input"
+            >
+            <div class="category-list">
+              <div
+                v-for="cat in filteredMappedCategories"
+                :key="cat.sub_category_id"
+                class="category-item"
+                :class="{ selected: selectedCategory?.sub_category_id === cat.sub_category_id }"
+                @click="selectMappedCategory(cat)"
+              >
+                <span class="cat-parent">{{ cat.category_name }}</span>
+                <span class="cat-name">{{ cat.sub_category_name }}</span>
+                <span class="cat-count">{{ cat.product_count }} товарів</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <h3>Товари в категорії</h3>
+            <div v-if="selectedCategory">
+              <input
+                v-model="productSearch"
+                type="text"
+                placeholder="Пошук товару..."
+                class="search-input"
+                @input="debouncedFetchProducts"
+              >
+
+              <div class="products-list">
+                <div
+                  v-for="product in products"
+                  :key="product.product_id"
+                  class="product-item"
+                  :class="{ selected: selectedProducts.includes(product.product_id) }"
+                  @click="toggleProductSelection(product.product_id)"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="selectedProducts.includes(product.product_id)"
+                    @click.stop
+                  >
+                  <span class="product-name">{{ product.name }}</span>
+                  <span class="product-price">{{ product.price }} грн</span>
+                  <span class="product-supplier">{{ product.supplier_prefix }}</span>
+                </div>
+              </div>
+
+              <div v-if="selectedProducts.length > 0" class="remap-section">
+                <p>Вибрано: {{ selectedProducts.length }} товарів</p>
+                <select v-model="remapTo" class="select-input">
+                  <option value="">Виберіть категорію...</option>
+                  <optgroup
+                    v-for="cat in overview?.my?.categories"
+                    :key="cat.category_id"
+                    :label="cat.category_name"
+                  >
+                    <option
+                      v-for="sub in allSubcategories"
+                      :key="sub.id"
+                      :value="sub.id"
+                    >
+                      {{ sub.name }}
+                    </option>
+                  </optgroup>
+                </select>
+                <button
+                  class="btn primary"
+                  :disabled="!remapTo || loading"
+                  @click="remapProducts"
+                >
+                  Перемістити
+                </button>
+                <button class="btn secondary" @click="selectedProducts = []">
+                  Скасувати
+                </button>
+              </div>
+            </div>
+            <div v-else class="placeholder">
+              Виберіть категорію зліва
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'structure'" class="structure-section">
+        <div class="two-columns">
+          <div class="column">
+            <h3>Категорії</h3>
+            <input
+              v-model="structureSearch"
+              type="text"
+              placeholder="Пошук категорії або підкатегорії..."
+              class="search-input"
+            >
+            <div class="category-tree">
+              <div
+                v-for="cat in filteredStructureCategories"
+                :key="cat.category_id"
+                class="tree-item"
+              >
+                <div class="tree-parent" @click="toggleExpand(cat.category_id)">
+                  <span class="expand-icon">{{ expanded[cat.category_id] ? '▼' : '▶' }}</span>
+                  <span>{{ cat.category_name }}</span>
+                  <span class="count">({{ cat.subcategories_count }})</span>
+                  <button class="btn-small danger" @click.stop="deleteCategory(cat.category_id)">✕</button>
+                </div>
+                <div v-if="expanded[cat.category_id] || structureSearch" class="tree-children">
+                  <div
+                    v-for="sub in getFilteredSubcategories(cat.category_id)"
+                    :key="sub.id"
+                    class="tree-child"
+                  >
+                    <span>{{ sub.name }}</span>
+                    <button class="btn-small danger" @click="deleteSubcategory(sub.id)">✕</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <h3>Додати категорію</h3>
+            <form class="form" @submit.prevent="createCategory">
+              <input
+                v-model="newCategory.name"
+                type="text"
+                placeholder="Назва категорії"
+                required
+              >
+              <input
+                v-model="newCategory.id"
+                type="text"
+                placeholder="ID (опційно)"
+              >
+              <button type="submit" class="btn primary" :disabled="loading">
+                Створити категорію
+              </button>
+            </form>
+
+            <h3>Додати підкатегорію</h3>
+            <form class="form" @submit.prevent="createSubcategory">
+              <select v-model="newSubCategory.parentId" required>
+                <option value="">Виберіть батьківську категорію...</option>
+                <option
+                  v-for="cat in overview?.my?.categories"
+                  :key="cat.category_id"
+                  :value="cat.category_id"
+                >
+                  {{ cat.category_name }}
+                </option>
+              </select>
+              <input
+                v-model="newSubCategory.name"
+                type="text"
+                placeholder="Назва підкатегорії"
+                required
+              >
+              <input
+                v-model="newSubCategory.id"
+                type="text"
+                placeholder="ID (опційно)"
+              >
+              <input
+                v-model="newSubCategory.picture"
+                type="text"
+                placeholder="URL картинки (опційно)"
+              >
+              <button type="submit" class="btn primary" :disabled="loading">
+                Створити підкатегорію
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'suppliers'" class="suppliers-section">
+        <h3>Постачальники</h3>
+        <div class="suppliers-grid">
+          <div
+            v-for="supplier in suppliers"
+            :key="supplier.supplier_prefix"
+            class="supplier-card"
+          >
+            <div class="supplier-name">{{ supplier.supplier_name || supplier.supplier_prefix }}</div>
+            <div class="supplier-prefix">{{ supplier.supplier_prefix }}</div>
+            <div class="supplier-count">{{ supplier.product_count }} товарів</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 
 <style scoped>
 .category-manager {
