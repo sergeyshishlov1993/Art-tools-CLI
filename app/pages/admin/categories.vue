@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BAutocomplete from '~/models/common/components/ui/BAutocomplete.vue';
 definePageMeta({
   layout: 'admin'
 })
@@ -81,9 +82,8 @@ const newSubCategory = ref({ name: '', id: '', parentId: '', picture: '' })
 const mapForm = ref({ from: '', to: '' })
 const selectedProducts = ref<string[]>([])
 const remapTo = ref('')
+const remapSearch = ref('')
 
-const page = ref(1)
-const totalPages = ref(1)
 const productSearch = ref('')
 const categorySearch = ref('')
 const unmappedSearch = ref('')
@@ -132,6 +132,20 @@ const filteredStructureCategories = computed(() => {
 })
 
 const allSubcategories = computed(() => unmapped.value.my_categories)
+
+const filteredRemapCategories = computed(() => {
+  if (!remapSearch.value || remapSearch.value.length < 2) return []
+  const search = remapSearch.value.toLowerCase()
+  return unmapped.value.my_categories
+    .filter(cat =>
+      cat.name.toLowerCase().includes(search) ||
+          cat.parent_name?.toLowerCase().includes(search)
+    )
+    .map(cat => ({
+      ...cat,
+      Description: `${cat.parent_name ? cat.parent_name + ' → ' : ''}${cat.name}`
+    }))
+})
 
 function getFilteredSubcategories(categoryId: string) {
   const category = overview.value?.my?.categories.find(cat => cat.category_id === categoryId)
@@ -239,7 +253,6 @@ async function mapCategory() {
 
 function selectMappedCategory(cat: MappedCategory) {
   selectedCategory.value = cat
-  page.value = 1
   selectedProducts.value = []
   fetchProducts()
 }
@@ -253,14 +266,9 @@ function toggleProductSelection(productId: string) {
   }
 }
 
-function prevPage() {
-  page.value--
-  fetchProducts()
-}
-
-function nextPage() {
-  page.value++
-  fetchProducts()
+function selectRemapCategory(item: MyCategory & { Description: string }) {
+  remapTo.value = item.id
+  remapSearch.value = item.Description
 }
 
 async function remapProducts() {
@@ -278,6 +286,7 @@ async function remapProducts() {
     success.value = `Переміщено ${data.moved_products} товарів`
     selectedProducts.value = []
     remapTo.value = ''
+    remapSearch.value = ''
     await Promise.all([fetchOverview(), fetchMapped(), fetchProducts()])
   } catch (err: unknown) {
     error.value = (err as { data?: { error?: string }; message?: string }).data?.error || (err as Error).message
@@ -369,7 +378,6 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 function debouncedFetchProducts() {
   if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    page.value = 1
     fetchProducts()
   }, 300)
 }
@@ -566,32 +574,26 @@ watch([error, success], () => {
 
               <div v-if="selectedProducts.length > 0" class="remap-section">
                 <p>Вибрано: {{ selectedProducts.length }} товарів</p>
-                <select v-model="remapTo" class="select-input">
-                  <option value="">Виберіть категорію...</option>
-                  <optgroup
-                    v-for="cat in overview?.my?.categories"
-                    :key="cat.category_id"
-                    :label="cat.category_name"
+                <BAutocomplete
+                  v-model="remapSearch"
+                  label="Перемістити в категорію"
+                  placeholder="Почніть вводити назву категорії..."
+                  :items="filteredRemapCategories"
+                  display-key="Description"
+                  @select="selectRemapCategory"
+                />
+                <div class="remap-actions">
+                  <button
+                    class="btn primary"
+                    :disabled="!remapTo || loading"
+                    @click="remapProducts"
                   >
-                    <option
-                      v-for="sub in allSubcategories"
-                      :key="sub.id"
-                      :value="sub.id"
-                    >
-                      {{ sub.name }}
-                    </option>
-                  </optgroup>
-                </select>
-                <button
-                  class="btn primary"
-                  :disabled="!remapTo || loading"
-                  @click="remapProducts"
-                >
-                  Перемістити
-                </button>
-                <button class="btn secondary" @click="selectedProducts = []">
-                  Скасувати
-                </button>
+                    Перемістити
+                  </button>
+                  <button class="btn secondary" @click="selectedProducts = []">
+                    Скасувати
+                  </button>
+                </div>
               </div>
             </div>
             <div v-else class="placeholder">
@@ -709,7 +711,6 @@ watch([error, success], () => {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .category-manager {
@@ -986,37 +987,18 @@ h1 {
   border-radius: 4px;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-}
-
-.pagination button {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .remap-section {
   margin-top: 15px;
   padding: 15px;
   background: #fff8e1;
   border-radius: 6px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.remap-actions {
+  display: flex;
   gap: 10px;
 }
 
