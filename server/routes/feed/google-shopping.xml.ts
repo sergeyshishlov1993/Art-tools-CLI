@@ -74,7 +74,9 @@ const fetchAllProducts = async (apiBase: string): Promise<RawProduct[]> => {
   const limit = 100
 
   while (true) {
-    const data = await $fetch<ProductsResponse>(`${apiBase}/products?page=${page}&limit=${limit}`)
+    const data = await $fetch<ProductsResponse>(`${apiBase}products`, {
+      query: { page, limit },
+    })
     const products = data?.products
     if (!Array.isArray(products) || products.length === 0) break
 
@@ -93,7 +95,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const siteUrl = String(config.public.siteUrl || '').replace(/\/+$/, '')
-  const apiBase = String(config.apiInternalBase || '').replace(/\/+$/, '')
+  const apiBase = String(config.public.apiBase || '').replace(/\/*$/, '/')
 
   let products: RawProduct[] = []
 
