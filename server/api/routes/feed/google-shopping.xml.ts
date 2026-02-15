@@ -4,30 +4,28 @@ interface Picture {
   pictures_name: string
 }
 
-interface SubCategory {
-  sub_category_name: string
-  category: {
-    category_name: string
-  }
-}
-
 interface RawProduct {
   product_id: string
   slug: string
   product_name: string
-  product_description: string
   brand: string
   price: string
   sale_price: string
   sale: string
   available: string
   pictures: Picture[]
-  subCategory: SubCategory
+}
+
+interface Pagination {
+  page: number
+  limit: number
+  total: number
+  pages: number
 }
 
 interface ProductsResponse {
   products: RawProduct[]
-  total_pages: number
+  pagination: Pagination
 }
 
 const escapeXml = (text: string): string =>
@@ -38,26 +36,15 @@ const escapeXml = (text: string): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;')
 
-const stripHtml = (html: string): string =>
-  html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&sup2;/g, '²')
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, ' ')
-    .trim()
-
 const buildItemXml = (product: RawProduct, siteUrl: string): string => {
-  const title = escapeXml(product.product_name.slice(0, 150))
-  const description = escapeXml(stripHtml(product.product_description).slice(0, 5000))
+  const title = escapeXml(product.product_name.trim().slice(0, 150))
   const link = `${siteUrl}/product/${product.slug}`
   const imageLink = product.pictures[0]?.pictures_name || ''
   const availability = product.available === 'true' ? 'in_stock' : 'out_of_stock'
   const brand = escapeXml(product.brand)
   const price = parseFloat(product.price).toFixed(2)
   const salePrice = parseFloat(product.sale_price).toFixed(2)
-  const isSale = product.sale === 'true' && salePrice !== price
-  const category = `${product.subCategory.category.category_name} > ${product.subCategory.sub_category_name}`
+  const isSale = product.sale === 'true' && parseFloat(product.sale_price) > 0 && salePrice !== price
 
   const additionalImages = product.pictures
     .slice(1, 10)
@@ -68,7 +55,7 @@ const buildItemXml = (product: RawProduct, siteUrl: string): string => {
     <item>
       <g:id>${escapeXml(product.product_id)}</g:id>
       <g:title>${title}</g:title>
-      <g:description>${description}</g:description>
+      <g:description>${title}</g:description>
       <g:link>${escapeXml(link)}</g:link>
       <g:image_link>${escapeXml(imageLink)}</g:image_link>
 ${additionalImages}
@@ -77,7 +64,6 @@ ${isSale ? `      <g:sale_price>${salePrice} UAH</g:sale_price>` : ''}
       <g:availability>${availability}</g:availability>
       <g:brand>${brand}</g:brand>
       <g:condition>new</g:condition>
-      <g:product_type>${escapeXml(category)}</g:product_type>
       <g:identifier_exists>false</g:identifier_exists>
     </item>`
 }
@@ -85,16 +71,16 @@ ${isSale ? `      <g:sale_price>${salePrice} UAH</g:sale_price>` : ''}
 const fetchAllProducts = async (apiBase: string): Promise<RawProduct[]> => {
   const allProducts: RawProduct[] = []
   let page = 1
-  const perPage = 100
+  const limit = 100
 
   while (true) {
-    const data = await $fetch<ProductsResponse>(`${apiBase}/products?page=${page}&per_page=${perPage}`)
+    const data = await $fetch<ProductsResponse>(`${apiBase}/products?page=${page}&limit=${limit}`)
     const products = data?.products
     if (!Array.isArray(products) || products.length === 0) break
 
     allProducts.push(...products)
 
-    if (page >= (data.total_pages || 1)) break
+    if (page >= (data.pagination?.pages || 1)) break
     page += 1
   }
 
