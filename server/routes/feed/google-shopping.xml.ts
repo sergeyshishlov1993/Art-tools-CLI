@@ -68,6 +68,13 @@ ${isSale ? `      <g:sale_price>${salePrice} UAH</g:sale_price>` : ''}
     </item>`
 }
 
+const getApiBaseUrl = (config: ReturnType<typeof useRuntimeConfig>): string => {
+  const publicApiBase = String(config.public.apiBase || '')
+  if (publicApiBase.startsWith('http')) return publicApiBase.replace(/\/*$/, '/')
+  const siteUrl = String(config.public.siteUrl || '').replace(/\/+$/, '')
+  return `${siteUrl}${publicApiBase}`.replace(/\/*$/, '/')
+}
+
 const fetchAllProducts = async (apiBase: string): Promise<RawProduct[]> => {
   const allProducts: RawProduct[] = []
   let page = 1
@@ -95,7 +102,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const siteUrl = String(config.public.siteUrl || '').replace(/\/+$/, '')
-  const apiBase = String(config.public.apiBase || '').replace(/\/*$/, '/')
+  const apiBase = getApiBaseUrl(config)
 
   let products: RawProduct[] = []
 
