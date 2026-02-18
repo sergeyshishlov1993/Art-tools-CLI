@@ -90,6 +90,12 @@ async function handleOrder() {
   const result = await cartStore.submitOrder(orderPayload)
 
   if (result.success) {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: 'purchase',
+      value: cartStore.totalPrice,
+      currency: 'UAH'
+    })
     notify.orderSuccess(result.orderNumber || result.orderId || 'Створено')
 
     localStorage.removeItem('utm_source')
