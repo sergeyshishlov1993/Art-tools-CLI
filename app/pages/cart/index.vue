@@ -89,6 +89,29 @@ async function handleOrder() {
 
   const result = await cartStore.submitOrder(orderPayload)
 
+  // if (result.success) {
+  //   window.dataLayer = window.dataLayer || []
+  //   window.dataLayer.push({
+  //     event: 'purchase',
+  //     value: cartStore.totalPrice,
+  //     currency: 'UAH'
+  //   })
+  //   notify.orderSuccess(result.orderNumber || result.orderId || 'Створено')
+  //
+  //   localStorage.removeItem('utm_source')
+  //   localStorage.removeItem('utm_medium')
+  //   localStorage.removeItem('utm_campaign')
+  //
+  //   window.scrollTo({ top: 0, behavior: 'smooth' })
+  //
+  //   setTimeout(() => {
+  //     cartStore.clearCart()
+  //     router.push(ROUTES.HOME)
+  //   }, 2500)
+  // } else {
+  //   notify.error('Помилка замовлення', result.error || 'Спробуйте ще раз')
+  // }
+
   if (result.success) {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({
@@ -96,6 +119,21 @@ async function handleOrder() {
       value: cartStore.totalPrice,
       currency: 'UAH'
     })
+
+    if (window.ttq) {
+      window.ttq.track('CompletePayment', {
+        content_type: 'product',
+        currency: 'UAH',
+        value: cartStore.totalPrice,
+        contents: cartStore.items.map(item => ({
+          content_id: String(item.id),
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })
+    }
+
     notify.orderSuccess(result.orderNumber || result.orderId || 'Створено')
 
     localStorage.removeItem('utm_source')
