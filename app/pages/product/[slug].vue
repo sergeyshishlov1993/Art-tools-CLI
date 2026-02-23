@@ -9,6 +9,7 @@ import CartModal from '~/models/cart/components/CartModal.vue'
 import OneClickModal from '~/models/cart/components/OneClickModal.vue'
 import PromoTimer from '~/models/common/components/PromoTimer.vue'
 import BBtn from '~/models/common/components/ui/BBtn.vue'
+import { CONTACTS } from '~/models/common/constants/contacts'
 
 const route = useRoute()
 const productStore = useProductStore()
@@ -38,10 +39,32 @@ const supportsHover = ref(false)
 const touchStartX = ref(0)
 const touchEndX = ref(0)
 const isSwiping = ref(false)
+const showStickyDesktop = ref(false)
+const ctaBlockRef = ref<HTMLDivElement | null>(null)
+const isFullscreenOpen = ref(false)
+const fullscreenIndex = ref(0)
+const fullscreenTouchStartX = ref(0)
+const fullscreenTouchEndX = ref(0)
+const fullscreenSwiping = ref(false)
+
+const FREE_DELIVERY_THRESHOLD = 2000
 
 onMounted(() => {
   supportsHover.value = window.matchMedia('(hover: hover) and (pointer: fine)').matches
   categoryStore.fetchActive()
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry) showStickyDesktop.value = !entry.isIntersecting
+    },
+    { threshold: 0 }
+  )
+
+  watch(ctaBlockRef, (element) => {
+    if (element) observer.observe(element)
+  }, { immediate: true })
+
+  onUnmounted(() => observer.disconnect())
 })
 
 const { pending: isLoading, error: asyncError } = await useAsyncData(
@@ -110,6 +133,20 @@ const showPromoTimer = computed(() =>
   productStore.isSale || productStore.discountPercent > 0
 )
 
+const deliveryProgress = computed(() => {
+  const cartTotal = cartStore.totalPrice
+  const productTotal = productStore.finalPrice * quantity.value
+  const total = cartTotal + productTotal
+  if (total >= FREE_DELIVERY_THRESHOLD) return { isFree: true, remaining: 0, percent: 100 }
+  const remaining = FREE_DELIVERY_THRESHOLD - total
+  const percent = Math.round((total / FREE_DELIVERY_THRESHOLD) * 100)
+  return { isFree: false, remaining, percent }
+})
+
+const formattedDeliveryRemaining = computed(() =>
+  new Intl.NumberFormat('uk-UA').format(deliveryProgress.value.remaining)
+)
+
 const modalProduct = computed(() => {
   if (lastAddedProduct.value) return lastAddedProduct.value
   if (productStore.cartItemData) {
@@ -136,6 +173,29 @@ const seoImage = computed(() => {
   return `https://art-tools.com.ua${img}`
 })
 
+const jsonLd = computed(() => {
+  const product = productStore.currentProduct
+  if (!product) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.product_name,
+    image: seoImage.value,
+    description: productStore.description || product.product_name,
+    sku: product.product_id,
+    brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+    offers: {
+      '@type': 'Offer',
+      url: `https://art-tools.com.ua/product/${product.slug}`,
+      priceCurrency: 'UAH',
+      price: productStore.finalPrice,
+      availability: productStore.isAvailable
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock'
+    }
+  }
+})
+
 useHead({
   title: seoTitle,
   meta: [
@@ -150,7 +210,12 @@ useHead({
     { name: 'twitter:title', content: seoTitle },
     { name: 'twitter:description', content: seoDescription },
     { name: 'twitter:image', content: seoImage },
-  ]
+  ],
+  script: computed(() =>
+    jsonLd.value
+      ? [{ type: 'application/ld+json', innerHTML: JSON.stringify(jsonLd.value) }]
+      : []
+  )
 })
 
 function handleImageError(img: string, index: number) {
@@ -212,7 +277,10 @@ function handleTouchEnd() {
   const diff = touchStartX.value - touchEndX.value
   const threshold = 50
 
-  if (Math.abs(diff) < threshold) return
+  if (Math.abs(diff) < threshold) {
+    if (hasValidImages.value) openFullscreen(currentImagePosition.value)
+    return
+  }
 
   const currentPos = currentImagePosition.value
 
@@ -223,6 +291,57 @@ function handleTouchEnd() {
     const prev = validImages.value[currentPos - 1]
     if (prev) selectedImageIndex.value = prev.index
   }
+}
+
+function openFullscreen(positionIndex: number) {
+  if (!hasValidImages.value) return
+  fullscreenIndex.value = positionIndex
+  isFullscreenOpen.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+function closeFullscreen() {
+  isFullscreenOpen.value = false
+  document.body.style.overflow = ''
+  const item = validImages.value[fullscreenIndex.value]
+  if (item) selectedImageIndex.value = item.index
+}
+
+function fullscreenPrev() {
+  if (fullscreenIndex.value > 0) fullscreenIndex.value--
+}
+
+function fullscreenNext() {
+  if (fullscreenIndex.value < validImages.value.length - 1) fullscreenIndex.value++
+}
+
+function handleFullscreenTouchStart(event: TouchEvent) {
+  const touch = event.touches[0]
+  if (!touch) return
+  fullscreenTouchStartX.value = touch.clientX
+  fullscreenTouchEndX.value = touch.clientX
+  fullscreenSwiping.value = true
+}
+
+function handleFullscreenTouchMove(event: TouchEvent) {
+  if (!fullscreenSwiping.value) return
+  const touch = event.touches[0]
+  if (!touch) return
+  fullscreenTouchEndX.value = touch.clientX
+}
+
+function handleFullscreenTouchEnd() {
+  if (!fullscreenSwiping.value) return
+  fullscreenSwiping.value = false
+  const diff = fullscreenTouchStartX.value - fullscreenTouchEndX.value
+  if (Math.abs(diff) < 50) return
+  if (diff > 0) fullscreenNext()
+  else fullscreenPrev()
+}
+
+function handleImageClick() {
+  if (supportsHover.value) return
+  if (hasValidImages.value) openFullscreen(currentImagePosition.value)
 }
 
 function handleAddToCart() {
@@ -285,7 +404,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-gray-50 pb-10">
+  <div class="bg-gray-50 pb-10 lg:pb-10" :class="{ 'pb-36': productStore.currentProduct && !isLoading }">
     <div class="max-w-7xl mx-auto px-4 py-6">
       <div v-if="isLoading" class="animate-pulse">
         <div class="h-4 bg-gray-200 rounded w-1/3 mb-6" />
@@ -332,6 +451,7 @@ onUnmounted(() => {
               @touchstart.passive="handleTouchStart"
               @touchmove.passive="handleTouchMove"
               @touchend="handleTouchEnd"
+              @click="handleImageClick"
             >
               <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
                 <span v-if="productStore.isSale" class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">АКЦІЯ</span>
@@ -369,6 +489,10 @@ onUnmounted(() => {
               <div v-if="supportsHover && !isZooming && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                 <UIcon name="heroicons-magnifying-glass-plus" class="w-4 h-4" />
                 <span>Наведіть для збільшення</span>
+              </div>
+
+              <div v-if="!supportsHover && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                <UIcon name="heroicons-arrows-pointing-out" class="w-4 h-4" />
               </div>
 
               <div v-if="!supportsHover && validImages.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -414,19 +538,37 @@ onUnmounted(() => {
               </span>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-4 hidden lg:block">
+            <div class="bg-gray-50 rounded-xl p-4">
               <div class="flex items-end gap-3 flex-wrap">
                 <span class="text-2xl sm:text-3xl font-bold" :class="showPromoTimer ? 'text-red-600' : 'text-gray-900'">
                   {{ formattedPrice }} ₴
                 </span>
                 <span v-if="formattedOldPrice" class="text-base sm:text-lg text-gray-400 line-through">{{ formattedOldPrice }} ₴</span>
+                <span v-if="productStore.discountPercent > 0" class="bg-red-100 text-red-600 text-sm font-bold px-2 py-0.5 rounded">
+                  -{{ productStore.discountPercent }}%
+                </span>
               </div>
               <div v-if="formattedSavings" class="mt-2 text-green-600 text-sm font-medium">💰 Економія: {{ formattedSavings }} ₴</div>
+
+              <div class="mt-3 pt-3 border-t border-gray-200">
+                <div v-if="deliveryProgress.isFree" class="flex items-center gap-2 text-green-600 text-sm font-medium">
+                  <UIcon name="heroicons-check-circle" class="w-4 h-4" />
+                  Безкоштовна доставка!
+                </div>
+                <template v-else>
+                  <p class="text-sm text-gray-600 mb-1.5">
+                    Додайте ще на <span class="font-bold text-gray-800">{{ formattedDeliveryRemaining }} ₴</span> для безкоштовної доставки
+                  </p>
+                  <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500 rounded-full transition-all duration-500" :style="{ width: `${deliveryProgress.percent}%` }" />
+                  </div>
+                </template>
+              </div>
             </div>
 
             <PromoTimer v-if="showPromoTimer" :product-id="productStore.currentProduct.product_id" />
 
-            <div class="hidden lg:block space-y-4">
+            <div ref="ctaBlockRef" class="hidden lg:block space-y-4">
               <div class="flex items-center gap-4">
                 <span class="text-sm text-gray-600">Кількість:</span>
                 <div class="flex items-center border border-gray-300 rounded-lg">
@@ -441,35 +583,79 @@ onUnmounted(() => {
               </div>
 
               <div class="flex gap-3">
-                <BBtn variant="primary" size="lg" class="flex-1" icon="heroicons-shopping-cart" :disabled="!productStore.isAvailable" @click="handleAddToCart">
+                <button
+                  class="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  :disabled="!productStore.isAvailable"
+                  @click="handleAddToCart"
+                >
+                  <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
                   Додати в кошик
-                </BBtn>
-                <BBtn variant="secondary" size="lg" class="flex-1" icon="heroicons-bolt" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
+                </button>
+                <button
+                  class="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:text-gray-400 text-white font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  :disabled="!productStore.isAvailable"
+                  @click="handleQuickBuy"
+                >
+                  <UIcon name="heroicons-bolt" class="w-5 h-5" />
                   Купити в 1 клік
-                </BBtn>
+                </button>
               </div>
+            </div>
+
+            <div class="flex gap-2">
+              <a
+                :href="CONTACTS.social.telegram.url"
+                target="_blank"
+                rel="noopener"
+                class="flex-1 flex items-center gap-3 bg-sky-50 hover:bg-sky-100 rounded-xl p-3 transition-colors group"
+              >
+                <img :src="CONTACTS.social.telegram.icon" alt="Telegram" class="w-8 h-8 flex-shrink-0">
+                <div>
+                  <p class="font-medium text-gray-800 text-sm group-hover:text-sky-700">Telegram</p>
+                  <p class="text-xs text-gray-500">Відповімо за 5 хв</p>
+                </div>
+              </a>
+              <a
+                :href="CONTACTS.social.viber.url"
+                target="_blank"
+                rel="noopener"
+                class="flex-1 flex items-center gap-3 bg-purple-50 hover:bg-purple-100 rounded-xl p-3 transition-colors group"
+              >
+                <img :src="CONTACTS.social.viber.icon" alt="Viber" class="w-8 h-8 flex-shrink-0">
+                <div>
+                  <p class="font-medium text-gray-800 text-sm group-hover:text-purple-700">Viber</p>
+                  <p class="text-xs text-gray-500">Напишіть нам</p>
+                </div>
+              </a>
             </div>
 
             <div class="border-t border-gray-200 pt-6 space-y-3">
               <div class="flex items-start gap-3">
                 <UIcon name="heroicons-truck" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p class="font-medium text-gray-800">Доставка</p>
-                  <p class="text-sm text-gray-500">Нова Пошта, кур'єр по Україні</p>
+                  <p class="font-medium text-gray-800">Безкоштовна доставка від 2000 ₴</p>
+                  <p class="text-sm text-gray-500">Нова Пошта, кур'єр по Україні · 1-3 дні</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <UIcon name="heroicons-credit-card" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p class="font-medium text-gray-800">Оплата</p>
-                  <p class="text-sm text-gray-500">Накладений платіж, карткою онлайн</p>
+                  <p class="font-medium text-gray-800">Зручна оплата</p>
+                  <p class="text-sm text-gray-500">Накладений платіж, карткою онлайн, ПриватБанк</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <UIcon name="heroicons-arrow-path" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p class="font-medium text-gray-800">Повернення 14 днів</p>
+                  <p class="text-sm text-gray-500">Легке повернення без зайвих питань</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <UIcon name="heroicons-shield-check" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p class="font-medium text-gray-800">Гарантія</p>
-                  <p class="text-sm text-gray-500">Офіційна гарантія від виробника</p>
+                  <p class="font-medium text-gray-800">Офіційна гарантія</p>
+                  <p class="text-sm text-gray-500">Від виробника, сертифікований товар</p>
                 </div>
               </div>
             </div>
@@ -526,6 +712,100 @@ onUnmounted(() => {
       </template>
     </div>
 
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="isFullscreenOpen"
+          class="fixed inset-0 z-[100] bg-black flex flex-col"
+          @touchstart.passive="handleFullscreenTouchStart"
+          @touchmove.passive="handleFullscreenTouchMove"
+          @touchend="handleFullscreenTouchEnd"
+        >
+          <div class="flex items-center justify-between p-4">
+            <span class="text-white/70 text-sm">{{ fullscreenIndex + 1 }} / {{ validImages.length }}</span>
+            <button class="w-10 h-10 flex items-center justify-center text-white" @click="closeFullscreen">
+              <UIcon name="heroicons-x-mark" class="w-6 h-6" />
+            </button>
+          </div>
+
+          <div class="flex-1 flex items-center justify-center relative px-4">
+            <button
+              v-if="fullscreenIndex > 0"
+              class="absolute left-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white z-10 hidden sm:flex"
+              @click="fullscreenPrev"
+            >
+              <UIcon name="heroicons-chevron-left" class="w-6 h-6" />
+            </button>
+
+            <img
+              v-if="validImages[fullscreenIndex]"
+              :src="validImages[fullscreenIndex].img"
+              :alt="productStore.currentProduct?.product_name"
+              class="max-w-full max-h-full object-contain"
+            >
+
+            <button
+              v-if="fullscreenIndex < validImages.length - 1"
+              class="absolute right-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white z-10 hidden sm:flex"
+              @click="fullscreenNext"
+            >
+              <UIcon name="heroicons-chevron-right" class="w-6 h-6" />
+            </button>
+          </div>
+
+          <div v-if="validImages.length > 1" class="flex justify-center gap-1.5 pb-6">
+            <span
+              v-for="(_, dotIndex) in validImages"
+              :key="dotIndex"
+              class="w-2 h-2 rounded-full transition-colors"
+              :class="fullscreenIndex === dotIndex ? 'bg-white' : 'bg-white/30'"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <Transition name="slide-up">
+      <div
+        v-if="showStickyDesktop && productStore.currentProduct && !isLoading"
+        class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg z-40 hidden lg:block"
+      >
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
+          <img
+            v-if="hasValidImages"
+            :src="currentImage"
+            :alt="productStore.currentProduct.product_name"
+            class="w-12 h-12 object-contain rounded border border-gray-200 flex-shrink-0"
+          >
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 truncate">{{ productStore.currentProduct.product_name }}</p>
+            <div class="flex items-baseline gap-2">
+              <span class="text-lg font-bold" :class="showPromoTimer ? 'text-red-600' : 'text-gray-900'">{{ formattedPrice }} ₴</span>
+              <span v-if="formattedOldPrice" class="text-sm text-gray-400 line-through">{{ formattedOldPrice }} ₴</span>
+            </div>
+          </div>
+          <div class="flex gap-3 flex-shrink-0">
+            <button
+              class="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-colors"
+              :disabled="!productStore.isAvailable"
+              @click="handleAddToCart"
+            >
+              <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
+              Додати в кошик
+            </button>
+            <button
+              class="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:text-gray-400 text-white font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-colors"
+              :disabled="!productStore.isAvailable"
+              @click="handleQuickBuy"
+            >
+              <UIcon name="heroicons-bolt" class="w-5 h-5" />
+              Купити в 1 клік
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <div v-if="productStore.currentProduct && !isLoading" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 lg:hidden">
       <div class="px-4 py-3">
         <div class="flex items-center justify-between mb-3">
@@ -544,13 +824,13 @@ onUnmounted(() => {
         </div>
 
         <div class="flex gap-2">
-          <button class="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2" :disabled="!productStore.isAvailable" @click="handleAddToCart">
+          <button class="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors" :disabled="!productStore.isAvailable" @click="handleAddToCart">
             <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
             <span>В кошик</span>
           </button>
-          <button class="flex-1 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400 text-gray-800 font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
+          <button class="flex-1 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-gray-100 disabled:text-gray-400 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
             <UIcon name="heroicons-bolt" class="w-5 h-5" />
-            <span>Швидко</span>
+            <span>Купити зараз</span>
           </button>
         </div>
       </div>
@@ -566,4 +846,25 @@ onUnmounted(() => {
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .safe-area-bottom { height: env(safe-area-inset-bottom, 0); background: white; }
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>
