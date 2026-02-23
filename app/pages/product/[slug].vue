@@ -344,7 +344,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-gray-50 pb-10 lg:pb-10" :class="{ 'pb-36': productStore.currentProduct && !isLoading }">
+  <div :key="slug"  class="bg-gray-50 pb-10 lg:pb-10" :class="{ 'pb-36': productStore.currentProduct && !isLoading }">
     <div class="max-w-7xl mx-auto px-4 py-6">
       <div v-if="isLoading" class="animate-pulse">
         <div class="h-4 bg-gray-200 rounded w-1/3 mb-6" />
