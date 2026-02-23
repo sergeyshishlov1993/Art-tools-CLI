@@ -8,7 +8,6 @@ import ProductSection from '~/models/product/components/ProductSection.vue'
 import CartModal from '~/models/cart/components/CartModal.vue'
 import OneClickModal from '~/models/cart/components/OneClickModal.vue'
 import PromoTimer from '~/models/common/components/PromoTimer.vue'
-import BBtn from '~/models/common/components/ui/BBtn.vue'
 import { CONTACTS } from '~/models/common/constants/contacts'
 
 const route = useRoute()
@@ -41,11 +40,6 @@ const touchEndX = ref(0)
 const isSwiping = ref(false)
 const showStickyDesktop = ref(false)
 const ctaBlockRef = ref<HTMLDivElement | null>(null)
-const isFullscreenOpen = ref(false)
-const fullscreenIndex = ref(0)
-const fullscreenTouchStartX = ref(0)
-const fullscreenTouchEndX = ref(0)
-const fullscreenSwiping = ref(false)
 
 const FREE_DELIVERY_THRESHOLD = 2000
 
@@ -277,10 +271,7 @@ function handleTouchEnd() {
   const diff = touchStartX.value - touchEndX.value
   const threshold = 50
 
-  if (Math.abs(diff) < threshold) {
-    if (hasValidImages.value) openFullscreen(currentImagePosition.value)
-    return
-  }
+  if (Math.abs(diff) < threshold) return
 
   const currentPos = currentImagePosition.value
 
@@ -291,57 +282,6 @@ function handleTouchEnd() {
     const prev = validImages.value[currentPos - 1]
     if (prev) selectedImageIndex.value = prev.index
   }
-}
-
-function openFullscreen(positionIndex: number) {
-  if (!hasValidImages.value) return
-  fullscreenIndex.value = positionIndex
-  isFullscreenOpen.value = true
-  document.body.style.overflow = 'hidden'
-}
-
-function closeFullscreen() {
-  isFullscreenOpen.value = false
-  document.body.style.overflow = ''
-  const item = validImages.value[fullscreenIndex.value]
-  if (item) selectedImageIndex.value = item.index
-}
-
-function fullscreenPrev() {
-  if (fullscreenIndex.value > 0) fullscreenIndex.value--
-}
-
-function fullscreenNext() {
-  if (fullscreenIndex.value < validImages.value.length - 1) fullscreenIndex.value++
-}
-
-function handleFullscreenTouchStart(event: TouchEvent) {
-  const touch = event.touches[0]
-  if (!touch) return
-  fullscreenTouchStartX.value = touch.clientX
-  fullscreenTouchEndX.value = touch.clientX
-  fullscreenSwiping.value = true
-}
-
-function handleFullscreenTouchMove(event: TouchEvent) {
-  if (!fullscreenSwiping.value) return
-  const touch = event.touches[0]
-  if (!touch) return
-  fullscreenTouchEndX.value = touch.clientX
-}
-
-function handleFullscreenTouchEnd() {
-  if (!fullscreenSwiping.value) return
-  fullscreenSwiping.value = false
-  const diff = fullscreenTouchStartX.value - fullscreenTouchEndX.value
-  if (Math.abs(diff) < 50) return
-  if (diff > 0) fullscreenNext()
-  else fullscreenPrev()
-}
-
-function handleImageClick() {
-  if (supportsHover.value) return
-  if (hasValidImages.value) openFullscreen(currentImagePosition.value)
 }
 
 function handleAddToCart() {
@@ -451,7 +391,6 @@ onUnmounted(() => {
               @touchstart.passive="handleTouchStart"
               @touchmove.passive="handleTouchMove"
               @touchend="handleTouchEnd"
-              @click="handleImageClick"
             >
               <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
                 <span v-if="productStore.isSale" class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">АКЦІЯ</span>
@@ -489,10 +428,6 @@ onUnmounted(() => {
               <div v-if="supportsHover && !isZooming && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                 <UIcon name="heroicons-magnifying-glass-plus" class="w-4 h-4" />
                 <span>Наведіть для збільшення</span>
-              </div>
-
-              <div v-if="!supportsHover && hasValidImages" class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                <UIcon name="heroicons-arrows-pointing-out" class="w-4 h-4" />
               </div>
 
               <div v-if="!supportsHover && validImages.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -712,59 +647,6 @@ onUnmounted(() => {
       </template>
     </div>
 
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="isFullscreenOpen"
-          class="fixed inset-0 z-[100] bg-black flex flex-col"
-          @touchstart.passive="handleFullscreenTouchStart"
-          @touchmove.passive="handleFullscreenTouchMove"
-          @touchend="handleFullscreenTouchEnd"
-        >
-          <div class="flex items-center justify-between p-4">
-            <span class="text-white/70 text-sm">{{ fullscreenIndex + 1 }} / {{ validImages.length }}</span>
-            <button class="w-10 h-10 flex items-center justify-center text-white" @click="closeFullscreen">
-              <UIcon name="heroicons-x-mark" class="w-6 h-6" />
-            </button>
-          </div>
-
-          <div class="flex-1 flex items-center justify-center relative px-4">
-            <button
-              v-if="fullscreenIndex > 0"
-              class="absolute left-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white z-10 hidden sm:flex"
-              @click="fullscreenPrev"
-            >
-              <UIcon name="heroicons-chevron-left" class="w-6 h-6" />
-            </button>
-
-            <img
-              v-if="validImages[fullscreenIndex]"
-              :src="validImages[fullscreenIndex].img"
-              :alt="productStore.currentProduct?.product_name"
-              class="max-w-full max-h-full object-contain"
-            >
-
-            <button
-              v-if="fullscreenIndex < validImages.length - 1"
-              class="absolute right-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white z-10 hidden sm:flex"
-              @click="fullscreenNext"
-            >
-              <UIcon name="heroicons-chevron-right" class="w-6 h-6" />
-            </button>
-          </div>
-
-          <div v-if="validImages.length > 1" class="flex justify-center gap-1.5 pb-6">
-            <span
-              v-for="(_, dotIndex) in validImages"
-              :key="dotIndex"
-              class="w-2 h-2 rounded-full transition-colors"
-              :class="fullscreenIndex === dotIndex ? 'bg-white' : 'bg-white/30'"
-            />
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
     <Transition name="slide-up">
       <div
         v-if="showStickyDesktop && productStore.currentProduct && !isLoading"
@@ -855,16 +737,6 @@ onUnmounted(() => {
 .slide-up-enter-from,
 .slide-up-leave-to {
   transform: translateY(100%);
-  opacity: 0;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
   opacity: 0;
 }
 </style>
