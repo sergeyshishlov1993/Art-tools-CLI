@@ -10,6 +10,10 @@ import OneClickModal from '~/models/cart/components/OneClickModal.vue'
 import PromoTimer from '~/models/common/components/PromoTimer.vue'
 import { CONTACTS } from '~/models/common/constants/contacts'
 
+definePageMeta({
+  key: route => route.fullPath
+})
+
 const route = useRoute()
 const productStore = useProductStore()
 const cartStore = useCartStore()
@@ -62,17 +66,20 @@ onMounted(() => {
 })
 
 const { pending: isLoading, error: asyncError } = await useAsyncData(
-  `product-${slug.value}`,
+  () => `product-${slug.value}`,
   async () => {
-    selectedImageIndex.value = 0
-    quantity.value = 1
-    failedImages.value = new Set()
-    loadedImages.value = new Set()
     await productStore.fetchProduct(slug.value)
     return productStore.currentProduct
   },
   { watch: [slug] }
 )
+
+watch(slug, () => {
+  selectedImageIndex.value = 0
+  quantity.value = 1
+  failedImages.value = new Set()
+  loadedImages.value = new Set()
+})
 
 const loadError = computed(() =>
   asyncError.value?.message || productStore.error
@@ -338,13 +345,11 @@ function handleViewedQuickBuy(productId: string) {
 function incrementQuantity() { quantity.value++ }
 function decrementQuantity() { if (quantity.value > 1) quantity.value-- }
 
-onUnmounted(() => {
-  productStore.clearProduct()
-})
+
 </script>
 
 <template>
-  <div :key="slug"  class="bg-gray-50 pb-10 lg:pb-10" :class="{ 'pb-36': productStore.currentProduct && !isLoading }">
+  <div :key="slug" class="bg-gray-50 pb-10 lg:pb-10" :class="{ 'pb-36': productStore.currentProduct && !isLoading }">
     <div class="max-w-7xl mx-auto px-4 py-6">
       <div v-if="isLoading" class="animate-pulse">
         <div class="h-4 bg-gray-200 rounded w-1/3 mb-6" />
