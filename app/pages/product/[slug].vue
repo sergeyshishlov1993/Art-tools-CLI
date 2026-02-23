@@ -576,7 +576,7 @@ onUnmounted(() => {
                 <UIcon name="heroicons-credit-card" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p class="font-medium text-gray-800">Зручна оплата</p>
-                  <p class="text-sm text-gray-500">Накладений платіж, карткою онлайн, ПриватБанк</p>
+                  <p class="text-sm text-gray-500">Накладений платіж, карткою онлайн</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
