@@ -92,6 +92,22 @@ watch(
   }
 )
 
+watch(
+  () => productStore.currentProduct,
+  (product) => {
+    if (product && import.meta.client && (window as any).ttq) {
+      (window as any).ttq.track('ViewContent', {
+        content_type: 'product',
+        content_id: String(product.product_id),
+        content_name: product.product_name,
+        currency: 'UAH',
+        value: productStore.finalPrice
+      })
+    }
+  },
+  { immediate: true }
+)
+
 const viewedProductCards = computed(() => {
   if (!productStore.currentProduct) return []
   return getViewedExcept(productStore.currentProduct.product_id, 10)
@@ -299,6 +315,17 @@ function handleAddToCart() {
     }
     lastAddedProduct.value = { ...cartData, to: `/product/${productStore.currentProduct?.slug}` }
     isCartModalOpen.value = true
+
+    if ((window as any).ttq) {
+      (window as any).ttq.track('AddToCart', {
+        content_type: 'product',
+        content_id: String(cartData.id),
+        content_name: cartData.name,
+        quantity: quantity.value,
+        currency: 'UAH',
+        value: cartData.price * quantity.value
+      })
+    }
   }
 }
 
@@ -344,8 +371,6 @@ function handleViewedQuickBuy(productId: string) {
 
 function incrementQuantity() { quantity.value++ }
 function decrementQuantity() { if (quantity.value > 1) quantity.value-- }
-
-
 </script>
 
 <template>

@@ -35,6 +35,20 @@ onMounted(() => {
   if (route.query.utm_source) localStorage.setItem('utm_source', route.query.utm_source as string)
   if (route.query.utm_medium) localStorage.setItem('utm_medium', route.query.utm_medium as string)
   if (route.query.utm_campaign) localStorage.setItem('utm_campaign', route.query.utm_campaign as string)
+
+  if (cartStore.items.length > 0 && (window as any).ttq) {
+    (window as any).ttq.track('InitiateCheckout', {
+      content_type: 'product',
+      currency: 'UAH',
+      value: cartStore.totalPrice,
+      contents: cartStore.items.map(item => ({
+        content_id: String(item.id),
+        content_name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    })
+  }
 })
 
 const isFormValid = computed(() => {
@@ -89,28 +103,6 @@ async function handleOrder() {
 
   const result = await cartStore.submitOrder(orderPayload)
 
-  // if (result.success) {
-  //   window.dataLayer = window.dataLayer || []
-  //   window.dataLayer.push({
-  //     event: 'purchase',
-  //     value: cartStore.totalPrice,
-  //     currency: 'UAH'
-  //   })
-  //   notify.orderSuccess(result.orderNumber || result.orderId || 'Створено')
-  //
-  //   localStorage.removeItem('utm_source')
-  //   localStorage.removeItem('utm_medium')
-  //   localStorage.removeItem('utm_campaign')
-  //
-  //   window.scrollTo({ top: 0, behavior: 'smooth' })
-  //
-  //   setTimeout(() => {
-  //     cartStore.clearCart()
-  //     router.push(ROUTES.HOME)
-  //   }, 2500)
-  // } else {
-  //   notify.error('Помилка замовлення', result.error || 'Спробуйте ще раз')
-  // }
 
   if (result.success) {
     window.dataLayer = window.dataLayer || []
