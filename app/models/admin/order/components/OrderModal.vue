@@ -152,10 +152,6 @@ watch(() => props.isOpen, (val) => {
                     </div>
                   </div>
 
-                  <div v-if="order?.comment" class="comment-box">
-                    <span class="comment-label">💬 Коментар:</span>
-                    <p class="comment-text">{{ order.comment }}</p>
-                  </div>
                 </template>
 
                 <template v-else>
@@ -419,19 +415,6 @@ watch(() => props.isOpen, (val) => {
   background: #fefce8;
   border-radius: 8px;
   border-left: 4px solid #facc15;
-}
-
-.comment-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #a16207;
-}
-
-.comment-text {
-  margin: 8px 0 0;
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.5;
 }
 
 .edit-form {
