@@ -1,7 +1,6 @@
-Крок 9: pages/admin/orders/components/OrderModal.vue
 <script setup lang="ts">
 import type { Order, OrderItem, OrderStatus, TrackingDetails } from '~/models/admin/types/Orders'
-import { STATUS_LABELS, useOrderHelpers  } from '../composables/useOrderHelpers'
+import { STATUS_LABELS, useOrderHelpers } from '../composables/useOrderHelpers'
 import OrderNovaPoshta from './OrderNovaPoshta.vue'
 import OrderItems from './OrderItems.vue'
 
@@ -24,6 +23,7 @@ const emit = defineEmits<{
   'refresh-tracking': []
   'copy-ttn': [ttn: string]
   'delete-item': [item: OrderItem]
+  'update-order': [orderId: string, updates: Partial<Order>]
 }>()
 
 const { formatPrice, getStatusLabel, getSourceLabel, getOrderTypeLabel } = useOrderHelpers()
@@ -31,6 +31,65 @@ const { formatPrice, getStatusLabel, getSourceLabel, getOrderTypeLabel } = useOr
 const localTtn = computed({
   get: () => props.ttn,
   set: (val) => emit('update:ttn', val)
+})
+
+const isEditing = ref(false)
+
+const editForm = ref({
+  name: '',
+  second_name: '',
+  phone: '',
+  city: '',
+  postal_office: '',
+  courier_delivery_address: '',
+  payment_method: '',
+  comment: ''
+})
+
+function startEditing() {
+  if (!props.order) return
+  editForm.value = {
+    name: props.order.name || '',
+    second_name: props.order.second_name || '',
+    phone: props.order.phone || '',
+    city: props.order.city || '',
+    postal_office: props.order.postal_office || '',
+    courier_delivery_address: props.order.courier_delivery_address || '',
+    payment_method: props.order.payment_method || '',
+    comment: props.order.comment || ''
+  }
+  isEditing.value = true
+}
+
+function cancelEditing() {
+  isEditing.value = false
+}
+
+function saveChanges() {
+  if (!props.order) return
+
+  const updates: Partial<Order> = {}
+  const fields = Object.keys(editForm.value) as (keyof typeof editForm.value)[]
+
+  for (const field of fields) {
+    const newVal = editForm.value[field]
+    const oldVal = (props.order as Record<string, unknown>)[field] || ''
+    if (newVal !== oldVal) {
+      ;(updates as Record<string, unknown>)[field] = newVal
+    }
+  }
+
+  if (!Object.keys(updates).length) {
+    isEditing.value = false
+    return
+  }
+
+  emit('update-order', props.order.order_id, updates)
+  isEditing.value = false
+}
+
+watch(() => props.isOpen, (val) => {
+  if (!val) isEditing.value = false
 })
 </script>
 
@@ -49,45 +108,100 @@ const localTtn = computed({
                   {{ getStatusLabel(order?.status) }}
                 </span>
               </div>
-              <button class="modal-close" aria-label="Закрити" @click="emit('close')">×</button>
+              <div class="modal-header-actions">
+                <button
+                  v-if="!isEditing"
+                  class="btn btn-edit"
+                  @click="startEditing"
+                >
+                  ✏️ Редагувати
+                </button>
+                <button class="modal-close" aria-label="Закрити" @click="emit('close')">×</button>
+              </div>
             </header>
 
             <div class="modal-body">
               <section class="modal-section">
                 <h3 class="section-title">👤 Клієнт</h3>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Ім'я</span>
-                    <span class="info-value">{{ order?.name }} {{ order?.second_name }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Телефон</span>
-                    <a :href="`tel:${order?.phone}`" class="info-value info-link">
-                      {{ order?.phone }}
-                    </a>
-                  </div>
-                  <div v-if="order?.city" class="info-item">
-                    <span class="info-label">Місто</span>
-                    <span class="info-value">{{ order?.city }}</span>
-                  </div>
-                  <div v-if="order?.payment_method" class="info-item">
-                    <span class="info-label">Оплата</span>
-                    <span class="info-value">{{ order?.payment_method }}</span>
-                  </div>
-                  <div v-if="order?.postal_office" class="info-item info-item-full">
-                    <span class="info-label">Відділення</span>
-                    <span class="info-value">{{ order?.postal_office }}</span>
-                  </div>
-                  <div v-if="order?.courier_delivery_address" class="info-item info-item-full">
-                    <span class="info-label">Адреса</span>
-                    <span class="info-value">{{ order?.courier_delivery_address }}</span>
-                  </div>
-                </div>
 
-                <div v-if="order?.comment" class="comment-box">
-                  <span class="comment-label">💬 Коментар:</span>
-                  <p class="comment-text">{{ order.comment }}</p>
-                </div>
+                <template v-if="!isEditing">
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <span class="info-label">Ім'я</span>
+                      <span class="info-value">{{ order?.name }} {{ order?.second_name }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Телефон</span>
+                      <a :href="`tel:${order?.phone}`" class="info-value info-link">{{ order?.phone }}</a>
+                    </div>
+                    <div v-if="order?.city" class="info-item">
+                      <span class="info-label">Місто</span>
+                      <span class="info-value">{{ order.city }}</span>
+                    </div>
+                    <div v-if="order?.payment_method" class="info-item">
+                      <span class="info-label">Оплата</span>
+                      <span class="info-value">{{ order.payment_method }}</span>
+                    </div>
+                    <div v-if="order?.postal_office" class="info-item info-item-full">
+                      <span class="info-label">Відділення</span>
+                      <span class="info-value">{{ order.postal_office }}</span>
+                    </div>
+                    <div v-if="order?.courier_delivery_address" class="info-item info-item-full">
+                      <span class="info-label">Адреса</span>
+                      <span class="info-value">{{ order.courier_delivery_address }}</span>
+                    </div>
+                  </div>
+
+                  <div v-if="order?.comment" class="comment-box">
+                    <span class="comment-label">💬 Коментар:</span>
+                    <p class="comment-text">{{ order.comment }}</p>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div class="edit-form">
+                    <div class="edit-row">
+                      <div class="edit-field">
+                        <label class="edit-label">Ім'я</label>
+                        <input v-model="editForm.name" class="edit-input" placeholder="Ім'я">
+                      </div>
+                      <div class="edit-field">
+                        <label class="edit-label">Прізвище</label>
+                        <input v-model="editForm.second_name" class="edit-input" placeholder="Прізвище">
+                      </div>
+                    </div>
+                    <div class="edit-row">
+                      <div class="edit-field">
+                        <label class="edit-label">Телефон</label>
+                        <input v-model="editForm.phone" class="edit-input" placeholder="+380...">
+                      </div>
+                      <div class="edit-field">
+                        <label class="edit-label">Оплата</label>
+                        <input v-model="editForm.payment_method" class="edit-input" placeholder="Спосіб оплати">
+                      </div>
+                    </div>
+                    <div class="edit-field-full">
+                      <label class="edit-label">Місто</label>
+                      <input v-model="editForm.city" class="edit-input" placeholder="Місто доставки">
+                    </div>
+                    <div class="edit-field-full">
+                      <label class="edit-label">Відділення Нової Пошти</label>
+                      <input v-model="editForm.postal_office" class="edit-input" placeholder="Відділення №...">
+                    </div>
+                    <div class="edit-field-full">
+                      <label class="edit-label">Адреса кур'єрської доставки</label>
+                      <input v-model="editForm.courier_delivery_address" class="edit-input" placeholder="Вулиця, будинок, квартира">
+                    </div>
+                    <div class="edit-field-full">
+                      <label class="edit-label">Коментар</label>
+                      <textarea v-model="editForm.comment" class="edit-textarea" rows="2" placeholder="Коментар до замовлення" />
+                    </div>
+                    <div class="edit-actions">
+                      <button class="btn btn-save" @click="saveChanges">💾 Зберегти</button>
+                      <button class="btn btn-cancel" @click="cancelEditing">Скасувати</button>
+                    </div>
+                  </div>
+                </template>
               </section>
 
               <OrderNovaPoshta
@@ -108,9 +222,7 @@ const localTtn = computed({
                     {{ getSourceLabel(order?.source) }}
                   </span>
                   <span class="badge">{{ getOrderTypeLabel(order?.order_type) }}</span>
-                  <span v-if="order?.utm_source" class="badge badge-utm">
-                    {{ order.utm_source }}
-                  </span>
+                  <span v-if="order?.utm_source" class="badge badge-utm">{{ order.utm_source }}</span>
                 </div>
               </section>
 
@@ -194,6 +306,13 @@ const localTtn = computed({
   font-size: 18px;
   font-weight: 700;
   color: #1a1a1a;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .modal-close {
@@ -315,6 +434,143 @@ const localTtn = computed({
   line-height: 1.5;
 }
 
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-field-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.edit-input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.edit-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-textarea {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.edit-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit {
+  padding: 6px 14px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  background: #bfdbfe;
+}
+
+.btn-save {
+  padding: 8px 20px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save:hover {
+  background: #16a34a;
+}
+
+.btn-cancel {
+  padding: 8px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
 .badges-row {
   display: flex;
   flex-wrap: wrap;
@@ -397,25 +653,6 @@ const localTtn = computed({
   color: #22c55e;
 }
 
-.btn {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.3s ease;
@@ -439,6 +676,10 @@ const localTtn = computed({
 
 @media (max-width: 768px) {
   .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-row {
     grid-template-columns: 1fr;
   }
 

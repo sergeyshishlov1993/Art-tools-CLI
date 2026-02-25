@@ -46,6 +46,7 @@ const {
   changeStatus,
   deleteOrderById,
   deleteOrderItem,
+  updateOrder,
   fetchTrackingDetails,
   syncOrderTracking,
   syncAllTracking,
@@ -184,6 +185,7 @@ async function handleDeleteOrder() {
       @refresh-tracking="fetchTrackingDetails"
       @copy-ttn="handleCopyTtn"
       @delete-item="deleteOrderItem(selectedOrder!, $event)"
+      @update-order="updateOrder"
     />
 
     <!-- TTN Modal -->

@@ -45,7 +45,7 @@ const isSwiping = ref(false)
 const showStickyDesktop = ref(false)
 const ctaBlockRef = ref<HTMLDivElement | null>(null)
 
-const FREE_DELIVERY_THRESHOLD = 2000
+const FREE_DELIVERY_THRESHOLD = 3000
 
 onMounted(() => {
   supportsHover.value = window.matchMedia('(hover: hover) and (pointer: fine)').matches
@@ -598,7 +598,7 @@ function decrementQuantity() { if (quantity.value > 1) quantity.value-- }
               <div class="flex items-start gap-3">
                 <UIcon name="heroicons-truck" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p class="font-medium text-gray-800">Безкоштовна доставка від 2000 ₴</p>
+                  <p class="font-medium text-gray-800">Безкоштовна доставка від 3000 ₴</p>
                   <p class="text-sm text-gray-500">Нова Пошта, кур'єр по Україні · 1-3 дні</p>
                 </div>
               </div>

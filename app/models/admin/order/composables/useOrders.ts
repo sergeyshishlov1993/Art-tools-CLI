@@ -115,8 +115,6 @@ export function useOrders() {
     error.value = msg
   }
 
-  // ==================== DEBOUNCE ====================
-
   let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
   function debouncedSearch(): void {
@@ -125,8 +123,6 @@ export function useOrders() {
       currentPage.value = 1
     }, 300)
   }
-
-  // ==================== ORDER ACTIONS ====================
 
   async function changeStatus(order: Order, newStatus: OrderStatus): Promise<void> {
     const oldStatus = order.status
@@ -137,7 +133,12 @@ export function useOrders() {
         { method: 'PUT' }
       )
 
+      updateOrderInList(order.order_id, { status: newStatus })
       order.status = newStatus
+
+      if (selectedOrder.value?.order_id === order.order_id) {
+        selectedOrder.value.status = newStatus
+      }
 
       if (oldStatus === 'new' && newStatus !== 'new') {
         adminStore.decrementOrders()
@@ -148,6 +149,7 @@ export function useOrders() {
       showSuccess('Статус змінено')
       await refreshStats()
     } catch (err) {
+      updateOrderInList(order.order_id, { status: oldStatus })
       order.status = oldStatus
       showError(getErrorMessage(err))
     }
@@ -195,6 +197,26 @@ export function useOrders() {
       showError(getErrorMessage(err))
     }
   }
+
+  async function updateOrder(orderId: string, updates: Partial<Order>): Promise<void> {
+    try {
+      const data = await $fetch<{ order: Order }>(
+        `${API_URL}/admin/orders/update/${orderId}`,
+        { method: 'PUT', body: updates }
+      )
+
+      updateOrderInList(orderId, data.order)
+
+      if (selectedOrder.value?.order_id === orderId) {
+        selectedOrder.value = { ...selectedOrder.value, ...data.order }
+      }
+
+      showSuccess('Замовлення оновлено')
+    } catch (err) {
+      showError(getErrorMessage(err))
+    }
+  }
+
   async function fetchTrackingDetails(): Promise<void> {
     if (!selectedOrder.value?.ttn) return
 
@@ -338,7 +360,6 @@ export function useOrders() {
     }
   }
 
-
   function filterByStatus(status: OrderStatus): void {
     statusFilter.value = statusFilter.value === status ? 'all' : status
     currentPage.value = 1
@@ -386,14 +407,12 @@ export function useOrders() {
     newTtn.value = ''
   }
 
-
   watch([error, success], () => {
     setTimeout(() => {
       error.value = null
       success.value = null
     }, 5000)
   })
-
 
   return {
     error,
@@ -426,6 +445,7 @@ export function useOrders() {
     deleteOrder,
     deleteOrderById,
     deleteOrderItem,
+    updateOrder,
     fetchTrackingDetails,
     syncOrderTracking,
     syncAllTracking,
