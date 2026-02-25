@@ -53,20 +53,19 @@ async function performSearch() {
   try {
     const data = await productAPI.getProducts({
       search: query.value,
-      limit: 5
+      limit: 10
     })
 
     results.value = data.products.map((product: Product) => ({
       id: product.product_id,
       name: product.product_name,
-      price: parseFloat(product.price) || 0,
-      oldPrice: product.sale_price ? parseFloat(product.sale_price) : null,
+      price: product.finalPrice ?? parseFloat(product.price) ?? 0,
+      oldPrice: product.oldPrice ?? null,
       image: product.pictures?.[0]?.pictures_name || '/images/no-image.png',
       slug: product.slug
     }))
 
     totalResults.value = data.pagination.total
-    selectedIndex.value = -1
   } catch (e) {
     console.error('Search error:', e)
     results.value = []
