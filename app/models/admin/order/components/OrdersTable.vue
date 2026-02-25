@@ -98,6 +98,7 @@ const {
 
           <td>
             <select
+              :key="`${order.order_id}-${order.status}`"
               :value="order.status"
               class="status-select"
               :class="`status-${order.status}`"

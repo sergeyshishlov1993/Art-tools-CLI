@@ -544,7 +544,7 @@ useHead({ title: pageTitle })
         <section class="mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <div
             v-for="(item, index) in [
-              { icon: 'heroicons-truck', title: 'Безкоштовна доставка', desc: 'При замовленні від 2000 грн' },
+              { icon: 'heroicons-truck', title: 'Безкоштовна доставка', desc: 'При замовленні від 3000 грн' },
               { icon: 'heroicons-shield-check', title: 'Гарантія якості', desc: 'Офіційна гарантія від виробника' },
               { icon: 'heroicons-arrow-path', title: 'Повернення 14 днів', desc: 'Легке повернення товару' },
               { icon: 'heroicons-credit-card', title: 'Зручна оплата', desc: 'Карткою або при отриманні' }
