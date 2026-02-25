@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Order, OrderStatus } from '~/models/admin/types/Orders'
-import { STATUS_LABELS, useOrderHelpers  } from '../composables/useOrderHelpers'
+import { STATUS_LABELS, useOrderHelpers } from '../composables/useOrderHelpers'
 
 interface Props {
   orders: Order[]
@@ -28,6 +28,12 @@ const {
   getSourceLabel,
   getNpStatusClass
 } = useOrderHelpers()
+
+const mounted = ref(false)
+
+onMounted(() => {
+  mounted.value = true
+})
 </script>
 
 <template>
@@ -98,6 +104,7 @@ const {
 
           <td>
             <select
+              v-if="mounted"
               :key="`${order.order_id}-${order.status}`"
               :value="order.status"
               class="status-select"
@@ -108,6 +115,9 @@ const {
                 {{ label }}
               </option>
             </select>
+            <span v-else class="status-badge" :class="`status-${order.status}`">
+              {{ STATUS_LABELS[order.status] || order.status }}
+            </span>
           </td>
 
           <td class="date-cell">{{ formatDate(order.createdAt) }}</td>
@@ -286,6 +296,14 @@ const {
   font-weight: 500;
   cursor: pointer;
   outline: none;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .status-new { background: #fef3c7; color: #d97706; }
