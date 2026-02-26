@@ -1,4 +1,4 @@
-import type { Expense, ExpenseType, ExpenseSummary, ExpensesResponse } from '../expense/types/Expense'
+import type { Expense, ExpenseType, ExpenseSummary, ExpensesResponse } from '~/models/admin/expense/types/Expense'
 
 export function useExpenses() {
   const config = useRuntimeConfig()
