@@ -45,6 +45,11 @@ const navItems = computed<NavItem[]>(() => [
     to: '/admin/categories'
   },
   {
+    label: 'Витрати',
+    icon: 'heroicons-banknotes',
+    to: '/admin/expenses'
+  },
+  {
     label: 'Фідбек',
     icon: 'heroicons-chat-bubble-left-right',
     to: '/admin/feedback',
