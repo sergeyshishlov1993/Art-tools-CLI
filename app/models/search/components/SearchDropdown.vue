@@ -42,6 +42,22 @@ const inputRef = ref<HTMLInputElement>()
 
 let searchTimeout: ReturnType<typeof setTimeout>
 
+function parseMoney(value: string | null | undefined): number {
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : 0
+}
+
+function mapSearchPrices(product: Product): { price: number; oldPrice: number | null } {
+  const regularPrice = parseMoney(product.price)
+  const salePrice = parseMoney(product.sale_price)
+
+  if (salePrice > 0 && salePrice < regularPrice) {
+    return { price: salePrice, oldPrice: regularPrice }
+  }
+
+  return { price: regularPrice, oldPrice: null }
+}
+
 async function performSearch() {
   if (!query.value || query.value.length < 2) {
     results.value = []
@@ -56,14 +72,18 @@ async function performSearch() {
       limit: 10
     })
 
-    results.value = data.products.map((product: Product) => ({
-      id: product.product_id,
-      name: product.product_name,
-      price: product.finalPrice ?? parseFloat(product.price) ?? 0,
-      oldPrice: product.oldPrice ?? null,
-      image: product.pictures?.[0]?.pictures_name || '/images/no-image.png',
-      slug: product.slug
-    }))
+    results.value = data.products.map((product: Product) => {
+      const { price, oldPrice } = mapSearchPrices(product)
+
+      return {
+        id: product.product_id,
+        name: product.product_name,
+        price,
+        oldPrice,
+        image: product.pictures?.[0]?.pictures_name || '/images/no-image.png',
+        slug: product.slug
+      }
+    })
 
     totalResults.value = data.pagination.total
   } catch (e) {
@@ -158,7 +178,9 @@ onUnmounted(() => {
 })
 
 defineExpose({
-  focus: () => inputRef.value?.focus()
+  focus: (): void => {
+    inputRef.value?.focus()
+  }
 })
 </script>
 
