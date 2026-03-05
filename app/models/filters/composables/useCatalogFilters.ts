@@ -1,4 +1,3 @@
-import type { Filters } from '~/models/filters/types/Filter'
 
 interface FilterState {
   category: Ref<string>
@@ -16,6 +15,12 @@ interface UseCatalogFiltersOptions {
   preserveQueryKeys?: string[]
   categoryFromRoute?: boolean
 }
+
+const IGNORED_QUERY_KEYS = [
+  'fbclid', 'gclid', 'yclid', 'msclkid',
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+  'ref', 'fbaid', 'fbc', 'fbp',
+]
 
 export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
   const { syncUrl = true, preserveQueryKeys = [], categoryFromRoute = false } = options
@@ -47,6 +52,37 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
             state.price.value.max !== null
     )
   })
+
+  function saveUtmData() {
+    if (import.meta.server) return
+
+    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+    const utmData: Record<string, string> = {}
+
+    utmKeys.forEach((key) => {
+      if (route.query[key]) {
+        utmData[key] = String(route.query[key])
+      }
+    })
+
+    if (route.query.fbclid) utmData.fbclid = String(route.query.fbclid)
+    if (route.query.gclid) utmData.gclid = String(route.query.gclid)
+
+    if (Object.keys(utmData).length > 0) {
+      sessionStorage.setItem('utm_data', JSON.stringify(utmData))
+    }
+  }
+
+  function getUtmData(): Record<string, string> {
+    if (import.meta.server) return {}
+
+    try {
+      const raw = sessionStorage.getItem('utm_data')
+      return raw ? JSON.parse(raw) : {}
+    } catch {
+      return {}
+    }
+  }
 
   function buildParams(): Record<string, any> {
     const params: Record<string, any> = {}
@@ -110,6 +146,8 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
   function readFromUrl() {
     const query = route.query
 
+    saveUtmData()
+
     if (query.category && !categoryFromRoute) {
       state.category.value = String(query.category)
     }
@@ -135,8 +173,10 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
 
     const reservedKeys = [
       'category', 'sub_category', 'brand', 'price_min', 'price_max',
-      'sale', 'bestseller', 'discount', 'page', 'sort'
+      'sale', 'bestseller', 'discount', 'page', 'sort',
+      ...IGNORED_QUERY_KEYS,
     ]
+
     Object.entries(query).forEach(([key, value]) => {
       if (!reservedKeys.includes(key) && value) {
         state.params.value[key] = String(value).split(',')
@@ -172,5 +212,6 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
     readFromUrl,
     clearFilters,
     selectCategory,
+    getUtmData,
   }
 }

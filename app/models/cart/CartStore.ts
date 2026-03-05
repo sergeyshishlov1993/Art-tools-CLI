@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useCartAPI } from './CartApi'
+import { getUtmData } from '~/models/common/utils/getUtmData'
 import type {
   CartItem,
   OrderPayload,
@@ -47,9 +48,7 @@ export const useCartStore = defineStore('cart', () => {
       if (saved) {
         items.value = JSON.parse(saved) as CartItem[]
       }
-    } catch (e) {
-      console.error('Failed to load cart:', e)
-    }
+    } catch {}
   }
 
   function saveToStorage(): void {
@@ -64,10 +63,7 @@ export const useCartStore = defineStore('cart', () => {
   )
 
   const totalPrice = computed<number>(() =>
-    items.value.reduce((acc, item) => {
-      const price = item.oldPrice && item.oldPrice > item.price ? item.price : item.price
-      return acc + (price * item.quantity)
-    }, 0)
+    items.value.reduce((acc, item) => acc + (item.price * item.quantity), 0)
   )
 
   function addToCart(product: Omit<CartItem, 'quantity'>): void {
@@ -107,6 +103,8 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function buildOrderPayload(formData: SubmitOrderData): OrderPayload {
+    const utm = getUtmData()
+
     const orderItems: OrderPayloadItem[] = items.value.map(item => {
       const hasDiscount = Boolean(item.oldPrice && item.oldPrice > item.price)
       const discountPercent = hasDiscount
@@ -136,12 +134,11 @@ export const useCartStore = defineStore('cart', () => {
       comment: formData.comment || null,
       totalPrice: totalPrice.value,
       orders: orderItems,
-      utm_source: formData.utm_source || '',
-      utm_medium: formData.utm_medium || '',
-      utm_campaign: formData.utm_campaign || ''
+      utm_source: formData.utm_source || utm.utm_source || '',
+      utm_medium: formData.utm_medium || utm.utm_medium || '',
+      utm_campaign: formData.utm_campaign || utm.utm_campaign || '',
     }
   }
-
 
   async function submitOrder(formData: SubmitOrderData): Promise<SubmitResult> {
     loading.value = true
@@ -171,7 +168,16 @@ export const useCartStore = defineStore('cart', () => {
     error.value = null
 
     try {
-      const res = await api.quickBuy(data) as QuickBuyResponse
+      const utm = getUtmData()
+
+      const payload: QuickBuyPayload = {
+        ...data,
+        utm_source: data.utm_source || utm.utm_source || '',
+        utm_medium: data.utm_medium || utm.utm_medium || '',
+        utm_campaign: data.utm_campaign || utm.utm_campaign || '',
+      }
+
+      const res = await api.quickBuy(payload) as QuickBuyResponse
 
       return {
         success: true,
@@ -195,8 +201,7 @@ export const useCartStore = defineStore('cart', () => {
         return res.city.data
       }
       return []
-    } catch (e) {
-      console.error('Search cities error:', e)
+    } catch {
       return []
     }
   }
@@ -214,8 +219,7 @@ export const useCartStore = defineStore('cart', () => {
       }
 
       return []
-    } catch (e) {
-      console.error('Get warehouses error:', e)
+    } catch {
       return []
     }
   }
