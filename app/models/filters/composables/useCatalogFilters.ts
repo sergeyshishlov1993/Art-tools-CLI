@@ -1,4 +1,3 @@
-
 interface FilterState {
   category: Ref<string>
   subcategories: Ref<string[]>
@@ -16,11 +15,21 @@ interface UseCatalogFiltersOptions {
   categoryFromRoute?: boolean
 }
 
-const IGNORED_QUERY_KEYS = [
-  'fbclid', 'gclid', 'yclid', 'msclkid',
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
-  'ref', 'fbaid', 'fbc', 'fbp',
-]
+const IGNORED_QUERY_PREFIXES = ['utm_', 'fb', 'gcl', 'ycl', 'mscl']
+
+const IGNORED_QUERY_KEYS = new Set(['ref'])
+
+const RESERVED_KEYS = new Set([
+  'category', 'sub_category', 'brand', 'price_min', 'price_max',
+  'sale', 'bestseller', 'discount', 'page', 'sort',
+])
+
+function isFilterKey(key: string): boolean {
+  if (RESERVED_KEYS.has(key)) return false
+  if (IGNORED_QUERY_KEYS.has(key)) return false
+  if (IGNORED_QUERY_PREFIXES.some((prefix) => key.startsWith(prefix))) return false
+  return true
+}
 
 export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
   const { syncUrl = true, preserveQueryKeys = [], categoryFromRoute = false } = options
@@ -56,17 +65,13 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
   function saveUtmData() {
     if (import.meta.server) return
 
-    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
     const utmData: Record<string, string> = {}
 
-    utmKeys.forEach((key) => {
-      if (route.query[key]) {
-        utmData[key] = String(route.query[key])
+    Object.entries(route.query).forEach(([key, value]) => {
+      if (!isFilterKey(key) && !RESERVED_KEYS.has(key) && value) {
+        utmData[key] = String(value)
       }
     })
-
-    if (route.query.fbclid) utmData.fbclid = String(route.query.fbclid)
-    if (route.query.gclid) utmData.gclid = String(route.query.gclid)
 
     if (Object.keys(utmData).length > 0) {
       sessionStorage.setItem('utm_data', JSON.stringify(utmData))
@@ -171,14 +176,8 @@ export function useCatalogFilters(options: UseCatalogFiltersOptions = {}) {
     if (query.page) state.page.value = Number(query.page)
     if (query.sort) state.sort.value = String(query.sort)
 
-    const reservedKeys = [
-      'category', 'sub_category', 'brand', 'price_min', 'price_max',
-      'sale', 'bestseller', 'discount', 'page', 'sort',
-      ...IGNORED_QUERY_KEYS,
-    ]
-
     Object.entries(query).forEach(([key, value]) => {
-      if (!reservedKeys.includes(key) && value) {
+      if (isFilterKey(key) && value) {
         state.params.value[key] = String(value).split(',')
       }
     })
