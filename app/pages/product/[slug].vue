@@ -736,11 +736,19 @@ function decrementQuantity() { if (quantity.value > 1) quantity.value-- }
         </div>
 
         <div class="flex gap-2">
-          <button class="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors" :disabled="!productStore.isAvailable" @click="handleAddToCart">
+          <button
+            class="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 disabled:bg-gray-300 text-white font-semibold p-[14px] text-[14px] rounded-xl flex items-center justify-center gap-2 transition-colors sm:py-3.5 sm:px-4 sm:text-base"
+            :disabled="!productStore.isAvailable"
+            @click="handleAddToCart"
+          >
             <UIcon name="heroicons-shopping-cart" class="w-5 h-5" />
             <span>В кошик</span>
           </button>
-          <button class="flex-1 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-gray-100 disabled:text-gray-400 text-white font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors" :disabled="!productStore.isAvailable" @click="handleQuickBuy">
+          <button
+            class="flex-1 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-gray-100 disabled:text-gray-400 text-white font-semibold p-[14px] text-[14px] rounded-xl flex items-center justify-center gap-2 transition-colors sm:py-3.5 sm:px-4 sm:text-base"
+            :disabled="!productStore.isAvailable"
+            @click="handleQuickBuy"
+          >
             <UIcon name="heroicons-bolt" class="w-5 h-5" />
             <span>Купити зараз</span>
           </button>

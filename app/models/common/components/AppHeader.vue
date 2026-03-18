@@ -54,8 +54,6 @@ watch(() => route.path, () => {
   <header class="bg-gray-900 h-[70px]">
     <div class="max-w-7xl mx-auto px-4 lg:px-8 h-full">
       <div class="flex items-center justify-between h-full">
-
-        <!-- Logo -->
         <NuxtLink :to="ROUTES.HOME" class="flex-shrink-0">
           <span
             class="text-white text-2xl lg:text-3xl tracking-[0.25em]"
@@ -65,7 +63,6 @@ watch(() => route.path, () => {
           </span>
         </NuxtLink>
 
-        <!-- Desktop Navigation -->
         <nav class="hidden lg:flex items-center gap-1">
           <NuxtLink
             v-for="item in NAV_ITEMS"
@@ -107,6 +104,19 @@ watch(() => route.path, () => {
             </span>
           </NuxtLink>
 
+          <NuxtLink
+            :to="ROUTES.CART"
+            class="lg:hidden relative text-gray-400 hover:text-white transition-colors"
+          >
+            <UIcon name="heroicons-shopping-cart" class="w-6 h-6" />
+            <span
+              v-if="cartStore.totalQuantity > 0"
+              class="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center bg-green-500 text-white text-[10px] font-bold rounded-full px-1"
+            >
+              {{ cartStore.totalQuantity > 99 ? '99+' : cartStore.totalQuantity }}
+            </span>
+          </NuxtLink>
+
           <button
             class="lg:hidden text-gray-400 hover:text-white transition-colors"
             @click="toggleMobileMenu"
@@ -121,7 +131,6 @@ watch(() => route.path, () => {
     </div>
   </header>
 
-  <!-- Mobile Menu -->
   <Teleport to="body">
     <Transition name="fade">
       <div
@@ -136,7 +145,6 @@ watch(() => route.path, () => {
         v-if="isMobileMenuOpen"
         class="fixed inset-y-0 right-0 w-72 bg-gray-900 z-[70] lg:hidden flex flex-col"
       >
-        <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-800">
           <span class="text-white font-medium">Меню</span>
           <button
@@ -147,7 +155,6 @@ watch(() => route.path, () => {
           </button>
         </div>
 
-        <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto">
           <NuxtLink
             v-for="item in MOBILE_NAV_ITEMS"
@@ -166,7 +173,6 @@ watch(() => route.path, () => {
             <UIcon :name="item.icon" class="w-5 h-5" />
             <span class="flex-1">{{ item.label }}</span>
 
-            <!-- Cart badge -->
             <span
               v-if="item.to === ROUTES.CART && cartStore.totalQuantity > 0"
               class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"
@@ -176,7 +182,6 @@ watch(() => route.path, () => {
           </NuxtLink>
         </nav>
 
-        <!-- Footer -->
         <div class="p-4 mb-10 border-t border-gray-800">
           <a
             :href="CONTACTS.phoneLink"
