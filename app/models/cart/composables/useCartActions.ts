@@ -33,7 +33,6 @@ export function useCartActions() {
     isOneClickModalOpen.value = true
   }
 
-  // Універсальний метод для пошуку і додавання
   function addToCartById(productId: string, products: Product[]) {
     const product = products.find((p) => p.product_id === productId)
     if (product) addToCart(product)
@@ -44,7 +43,6 @@ export function useCartActions() {
     if (product) quickBuy(product)
   }
 
-  // Для секцій з кількома джерелами
   function createHandlers(getProducts: () => Product[]) {
     return {
       handleAddToCart: (productId: string) => addToCartById(productId, getProducts()),

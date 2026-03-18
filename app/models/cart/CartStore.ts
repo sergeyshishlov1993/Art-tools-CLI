@@ -12,7 +12,7 @@ import type {
   NovaPoshtaCity,
   NovaPoshtaWarehouse,
   CityApiResponse,
-  WarehouseApiResponse
+  WarehouseApiResponse,
 } from './types'
 
 interface SubmitResult {
@@ -37,18 +37,16 @@ export const useCartStore = defineStore('cart', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  onMounted(() => {
-    loadFromStorage()
-  })
-
   function loadFromStorage(): void {
     if (typeof window === 'undefined') return
+
     try {
-      const saved = localStorage.getItem('cart_items')
-      if (saved) {
-        items.value = JSON.parse(saved) as CartItem[]
+      const savedItems = localStorage.getItem('cart_items')
+      if (savedItems) {
+        items.value = JSON.parse(savedItems) as CartItem[]
       }
-    } catch {}
+    }
+    catch {}
   }
 
   function saveToStorage(): void {
@@ -56,43 +54,53 @@ export const useCartStore = defineStore('cart', () => {
     localStorage.setItem('cart_items', JSON.stringify(items.value))
   }
 
-  watch(items, () => saveToStorage(), { deep: true })
+  loadFromStorage()
+
+  watch(items, saveToStorage, { deep: true })
 
   const totalQuantity = computed<number>(() =>
-    items.value.reduce((acc, item) => acc + item.quantity, 0)
+    items.value.reduce((accumulator, item) => accumulator + item.quantity, 0),
   )
 
   const totalPrice = computed<number>(() =>
-    items.value.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+    items.value.reduce((accumulator, item) => accumulator + (item.price * item.quantity), 0),
   )
 
   function addToCart(product: Omit<CartItem, 'quantity'>): void {
-    const existing = items.value.find(i => i.id === product.id)
-    if (existing) {
-      existing.quantity++
-    } else {
+    const existingItem = items.value.find(item => item.id === product.id)
+
+    if (existingItem) {
+      existingItem.quantity++
+    }
+    else {
       items.value.push({ ...product, quantity: 1 })
     }
   }
 
   function removeFromCart(id: string): void {
-    items.value = items.value.filter(i => i.id !== id)
+    items.value = items.value.filter(item => item.id !== id)
   }
 
   function updateQuantity(id: string, delta: number): void {
-    const item = items.value.find(i => i.id === id)
+    const item = items.value.find(cartItem => cartItem.id === id)
+
     if (item) {
       item.quantity += delta
-      if (item.quantity <= 0) removeFromCart(id)
+
+      if (item.quantity <= 0) {
+        removeFromCart(id)
+      }
     }
   }
 
   function setQuantity(id: string, quantity: number): void {
-    const item = items.value.find(i => i.id === id)
+    const item = items.value.find(cartItem => cartItem.id === id)
+
     if (item) {
       if (quantity <= 0) {
         removeFromCart(id)
-      } else {
+      }
+      else {
         item.quantity = quantity
       }
     }
@@ -105,7 +113,7 @@ export const useCartStore = defineStore('cart', () => {
   function buildOrderPayload(formData: SubmitOrderData): OrderPayload {
     const utm = getUtmData()
 
-    const orderItems: OrderPayloadItem[] = items.value.map(item => {
+    const orderItems: OrderPayloadItem[] = items.value.map((item) => {
       const hasDiscount = Boolean(item.oldPrice && item.oldPrice > item.price)
       const discountPercent = hasDiscount
         ? Math.round((1 - item.price / item.oldPrice!) * 100)
@@ -119,7 +127,7 @@ export const useCartStore = defineStore('cart', () => {
         price: item.price,
         oldPrice: hasDiscount ? item.oldPrice : null,
         discount: discountPercent,
-        discountProduct: hasDiscount
+        discountProduct: hasDiscount,
       }
     })
 
@@ -146,19 +154,25 @@ export const useCartStore = defineStore('cart', () => {
 
     try {
       const payload = buildOrderPayload(formData)
-      const res = await api.createOrder(payload) as OrderResponse
+      const response = await api.createOrder(payload) as OrderResponse
       clearCart()
 
       return {
         success: true,
-        orderId: res.order_id,
-        orderNumber: res.order_number
+        orderId: response.order_id,
+        orderNumber: response.order_number,
       }
-    } catch (e: unknown) {
-      const msg = extractErrorMessage(e)
-      error.value = msg
-      return { success: false, error: msg }
-    } finally {
+    }
+    catch (exception: unknown) {
+      const message = extractErrorMessage(exception)
+      error.value = message
+
+      return {
+        success: false,
+        error: message,
+      }
+    }
+    finally {
       loading.value = false
     }
   }
@@ -177,64 +191,75 @@ export const useCartStore = defineStore('cart', () => {
         utm_campaign: data.utm_campaign || utm.utm_campaign || '',
       }
 
-      const res = await api.quickBuy(payload) as QuickBuyResponse
+      const response = await api.quickBuy(payload) as QuickBuyResponse
 
       return {
         success: true,
-        message: res.message,
-        orderNumber: res.order_number
+        message: response.message,
+        orderNumber: response.order_number,
       }
-    } catch (e: unknown) {
-      const msg = extractErrorMessage(e)
-      error.value = msg
-      return { success: false, message: msg }
-    } finally {
+    }
+    catch (exception: unknown) {
+      const message = extractErrorMessage(exception)
+      error.value = message
+
+      return {
+        success: false,
+        message,
+      }
+    }
+    finally {
       loading.value = false
     }
   }
 
   async function searchCities(query: string): Promise<NovaPoshtaCity[]> {
     try {
-      const res = await api.searchCities(query) as unknown as CityApiResponse
+      const response = await api.searchCities(query) as unknown as CityApiResponse
 
-      if (res.city && Array.isArray(res.city.data)) {
-        return res.city.data
+      if (response.city && Array.isArray(response.city.data)) {
+        return response.city.data
       }
+
       return []
-    } catch {
+    }
+    catch {
       return []
     }
   }
 
-  async function getWarehouses(cityRef: string, query: string = ''): Promise<NovaPoshtaWarehouse[]> {
+  async function getWarehouses(cityRef: string, query = ''): Promise<NovaPoshtaWarehouse[]> {
     try {
-      const res = await api.getWarehouses(cityRef, query) as unknown as WarehouseApiResponse
+      const response = await api.getWarehouses(cityRef, query) as unknown as WarehouseApiResponse
 
-      if (Array.isArray(res.warehouses)) {
-        return res.warehouses
+      if (Array.isArray(response.warehouses)) {
+        return response.warehouses
       }
 
-      if (res.warehouses && 'data' in res.warehouses && Array.isArray(res.warehouses.data)) {
-        return res.warehouses.data
+      if (response.warehouses && 'data' in response.warehouses && Array.isArray(response.warehouses.data)) {
+        return response.warehouses.data
       }
 
       return []
-    } catch {
+    }
+    catch {
       return []
     }
   }
 
-  function isApiError(e: unknown): e is ApiError {
-    return typeof e === 'object' && e !== null && 'response' in e
+  function isApiError(exception: unknown): exception is ApiError {
+    return typeof exception === 'object' && exception !== null && 'response' in exception
   }
 
-  function extractErrorMessage(e: unknown): string {
-    if (isApiError(e) && e.response?._data?.message) {
-      return e.response._data.message
+  function extractErrorMessage(exception: unknown): string {
+    if (isApiError(exception) && exception.response?._data?.message) {
+      return exception.response._data.message
     }
-    if (e instanceof Error) {
-      return e.message
+
+    if (exception instanceof Error) {
+      return exception.message
     }
+
     return 'Помилка сервера'
   }
 
@@ -252,6 +277,6 @@ export const useCartStore = defineStore('cart', () => {
     submitOrder,
     submitQuickBuy,
     searchCities,
-    getWarehouses
+    getWarehouses,
   }
 })
