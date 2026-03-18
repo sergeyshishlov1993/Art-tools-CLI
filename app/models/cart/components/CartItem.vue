@@ -15,7 +15,7 @@ function formatPrice(value: number) {
 
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-6 border-b border-gray-100 last:border-0">
-    <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex-shrink-0 p-2">
+    <NuxtLink :to="`/product/${item.slug}`" class="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex-shrink-0 p-2 block">
       <img :src="item.image" :alt="item.name" class="w-full h-full object-contain mix-blend-multiply">
       <span
         v-if="item.oldPrice"
@@ -23,7 +23,7 @@ function formatPrice(value: number) {
       >
         -{{ Math.round((1 - item.price / item.oldPrice) * 100) }}%
       </span>
-    </div>
+    </NuxtLink>
 
     <div class="flex-1 min-w-0 w-full">
       <div class="flex justify-between items-start gap-4">
