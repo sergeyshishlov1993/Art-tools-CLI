@@ -3,7 +3,7 @@ import { CONTACTS } from '~/models/common/constants/contacts'
 
 const route = useRoute()
 
-const isProductPage = computed(() => route.path.startsWith('/product/'))
+const isProductPage = computed(() => route.path.startsWith('/product/') || route.path.startsWith('/cart'))
 
 const contacts = [
   {

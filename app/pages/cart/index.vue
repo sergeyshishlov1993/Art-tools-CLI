@@ -32,6 +32,39 @@ const utmData = computed(() => ({
   utm_campaign: (route.query.utm_campaign as string) || ''
 }))
 
+const formattedTotalPrice = computed(() =>
+  new Intl.NumberFormat('uk-UA').format(cartStore.totalPrice)
+)
+
+const checkoutProgress = computed(() => {
+  const data = checkoutData.value
+  let completedSteps = 0
+
+  if (data.firstName.trim()) completedSteps++
+  if (data.phone.trim()) completedSteps++
+  if (data.city.trim()) completedSteps++
+  if (data.deliveryType === 'nova_poshta' && data.warehouse.trim()) completedSteps++
+  if (data.deliveryType === 'courier' && data.address.trim()) completedSteps++
+
+  return {
+    completedSteps,
+    totalSteps: 4,
+    percent: Math.round((completedSteps / 4) * 100)
+  }
+})
+
+const mobileCheckoutHint = computed(() => {
+  const data = checkoutData.value
+
+  if (!data.firstName.trim()) return 'Заповніть ім’я'
+  if (!data.phone.trim()) return 'Вкажіть номер телефону'
+  if (!data.city.trim()) return 'Оберіть місто'
+  if (data.deliveryType === 'nova_poshta' && !data.warehouse.trim()) return 'Оберіть відділення'
+  if (data.deliveryType === 'courier' && !data.address.trim()) return 'Вкажіть адресу доставки'
+
+  return 'Усе готово до оформлення'
+})
+
 onMounted(() => {
   if (route.query.utm_source) localStorage.setItem('utm_source', route.query.utm_source as string)
   if (route.query.utm_medium) localStorage.setItem('utm_medium', route.query.utm_medium as string)
@@ -153,7 +186,7 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 lg:py-12">
+  <div class="min-h-screen bg-gray-50 py-8 lg:py-12 pb-32 lg:pb-12">
     <div class="max-w-7xl mx-auto px-4 lg:px-8">
       <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-8">Кошик</h1>
 
@@ -185,7 +218,7 @@ useHead({
             <CheckoutForm v-model="checkoutData" />
           </div>
 
-          <aside class="lg:w-96 flex-shrink-0">
+          <aside class="hidden lg:block lg:w-96 flex-shrink-0">
             <CartSummary
               :total-quantity="cartStore.totalQuantity"
               :total-price="cartStore.totalPrice"
@@ -211,6 +244,54 @@ useHead({
           <div class="h-40" />
         </template>
       </ClientOnly>
+    </div>
+
+    <div
+      v-if="cartStore.items.length > 0"
+      class="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white lg:hidden z-40"
+    >
+      <div class="px-4 py-3">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <div class="text-sm text-gray-500">До сплати</div>
+            <div class="text-2xl font-bold text-gray-800">{{ formattedTotalPrice }} ₴</div>
+          </div>
+          <div class="text-sm text-gray-500">
+            {{ checkoutProgress.completedSteps }}/{{ checkoutProgress.totalSteps }}
+          </div>
+        </div>
+
+        <div class="mb-3 h-2 overflow-hidden rounded-full bg-gray-100">
+          <div
+            class="h-full rounded-full bg-green-500 transition-all duration-300"
+            :style="{ width: `${checkoutProgress.percent}%` }"
+          />
+        </div>
+
+        <div
+          class="mb-3 flex items-center gap-2 rounded-xl px-3 py-2"
+          :class="isFormValid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'"
+        >
+          <UIcon
+            :name="isFormValid ? 'heroicons-check-circle' : 'heroicons-exclamation-circle'"
+            class="w-5 h-5 flex-shrink-0"
+          />
+          <span class="text-sm font-semibold">
+            {{ mobileCheckoutHint }}
+          </span>
+        </div>
+
+        <BBtn
+          variant="primary"
+          class="w-full p-[14px] text-[14px]"
+          :loading="cartStore.loading"
+          :disabled="!isFormValid"
+          @click="handleOrder"
+        >
+          Оформити замовлення
+        </BBtn>
+      </div>
+      <div class="h-[env(safe-area-inset-bottom,0px)] bg-white" />
     </div>
   </div>
 </template>
