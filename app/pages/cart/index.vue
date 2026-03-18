@@ -186,7 +186,7 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 lg:py-12 pb-32 lg:pb-12">
+  <div class="min-h-screen bg-gray-50 py-8 lg:py-12 pb-36 lg:pb-12">
     <div class="max-w-7xl mx-auto px-4 lg:px-8">
       <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-8">Кошик</h1>
 
@@ -283,7 +283,7 @@ useHead({
 
         <BBtn
           variant="primary"
-          class="w-full p-[14px] text-[14px]"
+          class="w-full py-4 text-[18px] font-semibold"
           :loading="cartStore.loading"
           :disabled="!isFormValid"
           @click="handleOrder"
