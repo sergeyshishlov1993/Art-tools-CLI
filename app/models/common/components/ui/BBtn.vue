@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
 interface Props {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
@@ -10,6 +8,7 @@ interface Props {
   icon?: string
   iconRight?: string
   type?: 'button' | 'submit' | 'reset'
+  to?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +18,15 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   loading: false,
   type: 'button',
+})
+
+const componentTag = computed(() => props.to ? resolveComponent('NuxtLink') : 'button')
+
+const componentProps = computed(() => {
+  if (props.to) {
+    return { to: props.to }
+  }
+  return { type: props.type, disabled: props.disabled || props.loading }
 })
 
 const variantClasses = computed(() => ({
@@ -43,9 +51,9 @@ const iconSizes = computed(() => ({
 </script>
 
 <template>
-  <button
-    :type="type"
-    :disabled="disabled || loading"
+  <component
+    :is="componentTag"
+    v-bind="componentProps"
     class="inline-flex items-center justify-center font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="[
       variantClasses[variant],
@@ -72,5 +80,5 @@ const iconSizes = computed(() => ({
     </span>
 
     <UIcon v-if="iconRight && !loading" :name="iconRight" :class="iconSizes[size]" />
-  </button>
+  </component>
 </template>
