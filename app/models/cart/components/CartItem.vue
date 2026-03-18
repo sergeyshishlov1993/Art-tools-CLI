@@ -16,9 +16,7 @@ function formatPrice(value: number) {
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-6 border-b border-gray-100 last:border-0">
     <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex-shrink-0 p-2">
-      <NuxtLink :to="`/product/${item.slug}`" class="font-medium text-gray-800 hover:text-green-600 transition-colors line-clamp-2">
-        <img :src="item.image" :alt="item.name" class="w-full h-full object-contain mix-blend-multiply">
-      </NuxtLink>
+      <img :src="item.image" :alt="item.name" class="w-full h-full object-contain mix-blend-multiply">
       <span
         v-if="item.oldPrice"
         class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded"
