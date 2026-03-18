@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, skipHydrate } from 'pinia'
 import { useCartAPI } from './CartApi'
 import { getUtmData } from '~/models/common/utils/getUtmData'
 import type {
@@ -38,8 +38,6 @@ export const useCartStore = defineStore('cart', () => {
   const error = ref<string | null>(null)
 
   function loadFromStorage(): void {
-    if (typeof window === 'undefined') return
-
     try {
       const savedItems = localStorage.getItem('cart_items')
       if (savedItems) {
@@ -50,13 +48,13 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function saveToStorage(): void {
-    if (typeof window === 'undefined') return
     localStorage.setItem('cart_items', JSON.stringify(items.value))
   }
 
-  loadFromStorage()
-
-  watch(items, saveToStorage, { deep: true })
+  if (import.meta.client) {
+    loadFromStorage()
+    watch(items, saveToStorage, { deep: true })
+  }
 
   const totalQuantity = computed<number>(() =>
     items.value.reduce((accumulator, item) => accumulator + item.quantity, 0),
@@ -264,11 +262,11 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   return {
-    items,
+    items: skipHydrate(items),
     loading,
     error,
-    totalQuantity,
-    totalPrice,
+    totalQuantity: skipHydrate(totalQuantity),
+    totalPrice: skipHydrate(totalPrice),
     addToCart,
     removeFromCart,
     updateQuantity,
